@@ -1,0 +1,4 @@
+# config.yaml
+data_root: /home/yoojinoh/Others/NLP/24-LLM-Project/data
+chunk_size: 1000
+chunk_overlap: 100
