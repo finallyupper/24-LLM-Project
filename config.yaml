@@ -1,0 +1,10 @@
+# config.yaml
+data_root: /home/yoojinoh/Others/NLP/24-LLM-Project/data
+chunk_size: 1000
+chunk_overlap: 100
+top_k: 5 
+
+ewha_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/ewha_faiss
+# ewha_bm25_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/ewha_bm25
+arc_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/arc_faiss
+# ewha_bm25_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/arc_bm25
