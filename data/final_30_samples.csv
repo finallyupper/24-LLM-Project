@@ -1,0 +1,230 @@
+prompts,answers
+"QUESTION1) 영어 및 정보 등에 관하여 일정한 기준의 능력이나 자격을 취득한 경우 인정 받는 학점은 몇점인가?
+(A) 인정 안됨
+(B) 1학점
+(C) 2학점
+(D) 3학점",(A)
+"QUESTION2) LMS 시스템의 초기 비밀번호는 무엇으로 설정되어 있습니까?
+(A) 사용자가 직접 설정
+(B) 본인 생년월일
+(C) 0000
+(D) 임의 지정된 숫자",(B)
+"QUESTION3) 비대면 수업을 위해 필요한 필수 장비는 무엇입니까?
+(A) 컴퓨터, 카메라, 마이크
+(B) 필기구와 종이
+(C) USB 드라이브
+(D) 추가 모니터",(A)
+"QUESTION4) 학생 포털에서 본인의 성적을 조회할 수 있는 시기는 언제입니까?
+(A) 시험 직후
+(B) 성적 입력 마감 후
+(C) 학기 초
+(D) 졸업 후에만 조회 가능",(B)
+"QUESTION5) 온라인 수업 출석 인정 기준은 무엇입니까?
+(A) 접속 후 5분 내 퇴장해도 인정됨
+(B) 최소 80% 수업 시청
+(C) 질문 게시판에 참여
+(D) 시험 응시 여부로만 결정",(B)
+"QUESTION6) In Singer’s understanding, the principle of the equality of human beings is
+(A) a description of an alleged actual equality among humans.
+(B) a description of an alleged equality among all living beings.
+(C) a prescription of how we should treat nonhuman animals.
+(D) a description of an alleged inequality among all living beings.
+(E) a prescription of how we should treat humans.
+(F) a description of an alleged actual inequality among humans.
+(G) a description of an alleged actual superiority of humans over nonhuman animals.
+(H) a prescription of how we should treat both human and nonhuman animals equally.
+(I) a prescription of how we should treat nonhuman animals differently.
+(J) a prescription of how we should treat the environment.",(E)
+"QUESTION7) Ms. Chen purchased a used car, worth $1,650, on the installment plan, paying $50 down and $1,840 in monthly installment payments over a period of two years. What annual interest rate did she pay?
+(A) 10%
+(B) 17.5%
+(C) 15.2%
+(D) 13.3%
+(E) 20%
+(F) 19.8%
+(G) 18%
+(H) 16%
+(I) 12%
+(J) 14.4%",(J)
+"QUESTION8) Functions of the law include all but which of the following?
+(A) defining the limits of government power
+(B) regulating the use of public spaces
+(C) keeping the peace
+(D) maximizing individual freedom
+(E) maintaining order and stability
+(F) preventing environmental degradation
+(G) providing a basis for compromise
+(H) promoting social justice
+(I) promoting the principles of the free enterprise system
+(J) encouraging economic growth",(I)
+"QUESTION9) The ________ School of jurisprudence postulates that the law is based on what is “correct.”
+(A) Legal Pragmatism
+(B) Legal Formalism
+(C) Comparative
+(D) Analytical
+(E) Sociological
+(F) Historical
+(G) Critical Legal Studies
+(H) Realist
+(I) Positivist
+(J) Natural Law
+",(J)
+"QUESTION10) Which of the following Enlightenment philosophes designed a system of checks and balances for government to avoid abuses of power?
+(A) Thomas Hobbes
+(B) Jean Jacques Rousseau
+(C) Baron Montesquieu
+(D) Voltaire
+(E) Denis Diderot
+(F) Immanuel Kant
+(G) David Hume
+(H) Mary Wollstonecraft
+(I) Adam Smith
+(J) John Locke",(C)
+"QUESTION11) 소속 학부 또는 학과의 변경(이하 ‘전과’)의 허가는 어느 시기에 가능한가?
+(A) 매 학기 말
+(B) 매 학년도 말
+(C) 매 학기 시작
+(D) 매 학년도 시작",(B)
+"QUESTION12) 재학 중인 자가 휴학을 하고자 하는 경우에 가능한 시기는?
+(A) 학기개시일로부터 30일 이내
+(B) 학기개시일로부터 90일 이내
+(C) 1 학기 수업시간의 2분의 1 이내
+(D) 1 학기 수업시간의 3분의 1 이내",(B)
+"QUESTION13) 1학기 수업시간의 어느 정도를 결석하면 그 교과목의 성적을 F 또는 U로 받는가?
+(A) 2분의 1 이상
+(B) 3분의 1 이상
+(C) 4분의 1 이상
+(D) 6분의 1 이상 !",(D)
+"QUESTION14) 2개 이상의 전공을 지칭하는 단어는?
+(A) 연계전공
+(B) 융합전공
+(C) 심화전공
+(D) 복수전공",(D)
+"QUESTION15) 졸업에 필요한 학점은?
+(A) 124 학점
+(B) 129 학점
+(C) 136 학점
+(D) 140 학점",(B)
+"QUESTION16) 등록금 반환사유에 해당하지 않는 것은?
+(A) 입학허가를 받은 자가 입학포기한 경우
+(B) 재학중인 자가 자퇴한 경우
+(C) 재학중인 자가 휴학한 경우
+(D) 한 학기 최소 학점을 넘기지 못한 경우",(D)
+"QUESTION17) 조형예술대학에 포함되지 않는 학과 또는 전공은?
+(A) 시각정보디자인
+(B) 패션디자인
+(C) 도자예술
+(D) 공간디자인",(D)
+"QUESTION18) 졸업증서에 작성되어 있지 않은 항목은?
+(A) 학위번호
+(B) 전공
+(C) 부전공
+(D) 취득 학점",(D)
+"QUESTION19) 제적사유에 해당하지 않는 것은?
+(A) 수업료 기타 납입금을 소정 기일 내에 납입하지 아니한 자
+(B) 성적이 불량한 자
+(C) 타교에 입학한 자
+(D) 수업의 6분의 1을 결석한 자",(D)
+"QUESTION20) 1학점의 기준은?
+(A) 1학기간 15시간 이상의 수업
+(B) 1학기간 10시간 이상의 수업
+(C) 1학기간 20시간 이상의 수업
+(D) 1학기간 21시간 이상의 수업",(A)
+"QUESTION4389) Which of the boys on the TV show 'My Three Sons' is adopted?
+(A) Danny
+(B) Sam
+(C) Charlie
+(D) Ernie
+(E) Fred
+(F) Robbie
+(G) Chip
+(H) Billy
+(I) Steve
+(J) Mike",(D)
+"QUESTION8606) The cornea of the eye is a convex mirror, and the high-light usually seen in it is a reflected image. Suppose that a circular object 20 cm in diameter is located 40 cm from the eye. If the radius of the cornea is 0.8 cm, how far is the virtual image from the cornea and what is its size?
+(A) 6 mm inside the cornea, 3 mm in diameter
+(B) 3 mm inside the cornea, 1 mm in diameter
+(C) 5 mm outside the cornea, 1.5 mm in diameter
+(D) 4 mm outside the cornea, 2 mm in diameter
+(E) 5 mm inside the cornea, 2 mm in diameter
+(F) 5 mm inside the cornea, 2.5 mm in diameter
+(G) 4 mm inside the cornea, 2 mm in diameter
+(H) 8 mm inside the cornea, 2.5 mm in diameter
+(I) 4 mm inside the cornea, 3 mm in diameter
+(J) 2 mm outside the cornea, 2 mm in diameter",(G)
+"QUESTION8976) What is utility? What is marginal utility?
+(A) Utility is the measure of usefulness or pleasure. Marginal utility is the decrease in usefulness or pleasure as more units are consumed.
+(B) Utility is the quantity of a product. Marginal utility is the increase in quantity which a consumer gets from an additional unit of a specific good.
+(C) Utility is the power to satisfy a want. Marginal utility is the extra utility, or satisfaction, which a consumer derives from an additional unit of a specific good.
+(D) Utility is the duration of time a product can be used. Marginal utility is the increase in usage time with each additional unit consumed.
+(E) Utility is the measure of scarcity of a good. Marginal utility is the change in scarcity when one more unit of the good is produced.
+(F) Utility is the weight of a product. Marginal utility is the additional weight a consumer perceives when purchasing an extra unit of a specific good.
+(G) Utility is the power to make a good. Marginal utility is the extra power which a consumer derives from an additional unit of a specific good.
+(H) Utility is the total satisfaction received from consuming a certain amount of a good. Marginal utility is the satisfaction gained from the last unit consumed, holding the level of consumption constant.
+(I) Utility is the price of a good. Marginal utility is the increase in price which a consumer pays for an additional unit of a specific good.
+(J) Utility is the demand for a product. Marginal utility is the change in demand as the supply of a specific good increases.",(C)
+"QUESTION5103) The daily protein intake of a typical American diet consists of meat, dairy products and eggs. Its average net protein utilization (NPU) is 70. If the daily protein requirement of the body is 0.3 g per pound of body weight, what is the actual protein requirement for an average American?
+(A) 100 g of protein per day
+(B) 70 g of protein per day
+(C) 64.5 g of protein per day
+(D) 0.43 g of protein per day
+(E) 35 g of protein per day
+(F) 200 g of protein per day
+(G) 80 g of protein per day
+(H) 150 g of protein per day
+(I) 120 g of protein per day
+(J) 50 g of protein per day",(C)
+"QUESTION8212) For matrix A = [[3, 1, 1], [2, 4, 2], [1, 1, 3]], what are its eigen values?
+(A) [3, 1]
+(B) [2, 6]
+(C) [1, 4, 5]
+(D) [1, 2]
+(E) [0, 2, 4]
+(F) [4, 2, 3]
+(G) [3, 4, 5]
+(H) [3, 4]
+(I) [6, 2, 3]
+(J) [5, 3, 1]",(B)
+"QUESTION5749) An example of a categorical grant would be
+(A) money given by the federal government to states to fund military defense
+(B) money loaned by the federal government to a state to prevent it from bankruptcy
+(C) money given by the federal government to states to fund Head Start early education programs
+(D) money loaned by the federal government to states for infrastructure projects
+(E) money given by the federal government to states without conditions
+(F) money loaned by the federal government to a private company to prevent it from failing
+(G) money given by the federal government to cities with no specific use required",(C)
+"QUESTION5130) Which of the following statements about glucose metabolism is correct?
+(A) The end-product of glycolysis in all cells is glucose
+(B) Glycolysis doesn't require any enzymes
+(C) In glycolysis, glucose is cleaved into two three-carbon products
+(D) Glucose metabolism only occurs in the presence of oxygen
+(E) In glycolysis, glucose is converted into two molecules of fructose
+(F) Glycolysis requires ATP only
+(G) Glucagon increases the rate of glycolysis
+(H) Glycolysis requires NADP+",(C)
+"QUESTION11435) In binary number system the first digit (bit) from right to left is called as
+(A) First Significant Bit
+(B) MSB, Most Significant Bit
+(C) LSB, Least Significant Bit
+(D) Last Bit
+(E) Binary Digit
+(F) Initial Bit
+(G) Binary Significant Bit
+(H) Bit Zero
+(I) First Bit",(C)
+"QUESTION6714) a) If you are holding interest bearing bonds (Z), the interest rate is (i), and the cost of transactions is (b), what is the optimal number of transactions to make (n) so as to maximize the amount of interest received from the bonds? b) If you have $10,000 in bonds, the interest rate is 10%, the cost of transactions is $5, what would be the optimal amount of transactions?
+(A) 10 transactions
+(B) 8 transactions
+(C) 6 transactions
+(D) 30 transactions
+(E) 5 transactions
+(F) 15 transactions
+(G) 12 transactions
+(H) 25 transactions
+(I) 20 transactions
+(J) 18 transactions",(A)
+"QUESTION3516) The “Lion Man” from Hohlenstein-Stadel cave is an example of:
+(A) mobiliary art.
+(B) long-distance trade of exotic raw materials.
+(C) parietal art.
+(D) a Venus figurine.",(A)
