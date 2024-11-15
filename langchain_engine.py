@@ -21,6 +21,7 @@ from langchain.tools.retriever import create_retriever_tool
 from utils import format_docs, format_arc_doc
 
 def load_env(env_path=None):
+    """Loads API keys"""
     global UPSTAGE_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_ENDPOINT, LANGCHAIN_PROJECT, LANGCHAIN_API_KEY
     if env_path is not None:
         load_dotenv(env_path)
@@ -34,6 +35,7 @@ def load_env(env_path=None):
 
 
 def load_docs(data_root):
+    """Loads documentary using UpstageLayoutAnalysisLoader"""
     layzer = UpstageLayoutAnalysisLoader(
         api_key=UPSTAGE_API_KEY,
         file_path=os.path.join(data_root, 'ewha.pdf'), 
@@ -57,6 +59,7 @@ def load_docs(data_root):
     return docs 
 
 def split_docs(docs, chunk_size, chunk_overlap):
+    """Returns splits of docs using given chunk size and overlap"""
     print("[INFO] Spliting documents...")
     text_splitter = RecursiveCharacterTextSplitter.from_language(
         chunk_size=chunk_size,
@@ -70,16 +73,24 @@ def split_docs(docs, chunk_size, chunk_overlap):
 
 
 def get_embedding():
+    """Loads upstage embedding"""
     # returns upstage embedding
     print("[INFO] Loading embeddings...")
     return UpstageEmbeddings(api_key=UPSTAGE_API_KEY, model = 'solar-embedding-1-large')
 
 
 def get_llm(temperature=0):
+    """Loads LLM model from Upstage"""
     llm = ChatUpstage(api_key = UPSTAGE_API_KEY, temperature=temperature)
     return llm 
 
 def get_qa_chain(llm, retriever, prompt_template=None):
+    """
+    Loads LLM chain. 
+    If customed prompt template is not given, 
+    this function will apply huggingface's hub QA prompt named rlm/rag-prompt as our prompt template.
+    returns chain
+    """
     if prompt_template is not None:
          prompt_template = PromptTemplate.from_template(prompt_template)
     else:
@@ -102,6 +113,7 @@ def get_responses(chain, prompts):
     return responses
 
 def get_agent_responses(agent, prompts):
+    """Get responses from given agent"""
     responses = [] 
     for prompt in tqdm(prompts, desc="Processing questions"):
         response = agent.invoke({"input": prompt}) 
@@ -118,6 +130,7 @@ def get_chroma(splits, save_dir="./db/chroma", top_k=4, collection_name=""):
                                             embedding=embeddings, 
                                             persist_directory=save_dir) 
     else:
+        # If the db already exists, load from local.
         vectorstore = Chroma(
             persist_directory=save_dir,
             embedding_function=embeddings,
@@ -137,6 +150,7 @@ def get_faiss(splits, save_dir="./db/faiss", top_k=4):
         vectorstore.save_local(save_dir)
         print("[INFO] Successfully saved Vectorscore to local!")
     else:
+        # If the db already exists, load from local.
         vectorstore = FAISS.load_local(save_dir, embeddings, allow_dangerous_deserialization=True) 
         print(f"[INFO] Load DB from {save_dir}...") 
 
@@ -155,6 +169,7 @@ def get_ensemble_retriever(r1, r2, w1=0.7, w2=0.3):
     return ensemble_retriever 
 
 def load_arc():
+    """Loads allenai/ai2_arc dataset and make it as metadata"""
     ds = load_dataset("allenai/ai2_arc", "ARC-Easy")
     train_data = ds['train']
     train_docs = []
@@ -165,15 +180,18 @@ def load_arc():
     return train_docs 
 
 def get_arc_faiss(arc_data, save_dir="./db/arc_faiss", top_k=4):
+    """Get FAISS retriever from arc dataset"""
     retriever_arc = get_faiss(arc_data, save_dir, top_k) 
     return retriever_arc 
 
 def get_arc_chroma(arc_data, save_dir="./db/arc_chroma", top_k=4, collection_name="chroma"):
+    """Get Chroma retriever from arc dataset"""
     retriever_arc = get_chroma(arc_data, save_dir, top_k=top_k, collection_name=collection_name)   
     return retriever_arc
     # ex. arc_retriever = get_arc_chroma(arc_data, save_dir="./db/arc_chroma", top_k=top_k, collection_name="arc_chroma") 
 
 def get_agent_executor(llm, r1, r2):
+    """Make agent executor with given two retrievers, r1 and r2."""
     retriever_tool_1 = create_retriever_tool(r1, "ewha_search", "Searches any questions related to school rules. Always use this tool when user query is related to EWHA or school rules!") 
     retriever_tool_2 = create_retriever_tool(r2, "arc_search", "Searches any questions related to science. Always use this tool when user query is related to science!")
     tools = [retriever_tool_1, retriever_tool_2]

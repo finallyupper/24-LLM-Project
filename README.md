@@ -1,5 +1,21 @@
 # 24-LLM-Project
 24-Fall-NLP LLM project
+#### Configurations 
+`config.yaml` 에서 data_root: 데이터 폴더의 경로, *_faiss_path는 FAISS 데이터베이스를 저장할 로컬 위치
+top_k는 상위 몇개까지 retriever가 뽑을지를 나타내는 하이퍼파라미터. 그외 chunk_size, chunk_overlap
+- data_root, ewha_faiss_path, arc_faiss_path는 본인 절대경로 기준으로 수정이 필요함.
+- NOTE: 레포내에 .env 파일을 만들어 UPSTAGE_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_ENDPOINT, LANGCHAIN_PROJECT, LANGCHAIN_API_KEY를 반드시 입력해두어야함.
+
+#### How to play
+커맨드에 아래를 실행하면 데이터베이스를 불러와 chain을 정의하고 questions를 테스트해보고 정확도까지 출력해볼 수 있음.
+```
+python main.py
+```
+#### 호출 함수 관련
+- langchain과 관련된 핵심 메소드들은 `langchain_engine.py`에 정의되어 있음.
+- `utils.py` 에는 그 외에 필요한 함수들이 있음(ex. read data/yaml 등)
+- `dataset.py`는 수진님 것과 동일.
+- `prompts.py`는 일단 프롬프트 기록용으로 만들어준 의미없는 파일.
 
 ### API Key 관리
 1. `.env`파일 생성후 아래 내용 작성 (gitignore에 의해 add되지 않을것)

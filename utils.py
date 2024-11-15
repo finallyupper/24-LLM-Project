@@ -3,13 +3,14 @@ import re
 import pandas as pd
 import yaml
 
-
 def load_yaml(file_path: str) -> dict:
+    """Loads configurations from yaml file"""
     with open(file_path) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     return config
 
 def read_data(data_path, filename="test_samples.csv"):
+    """Reads data and returns two lists"""
     data = pd.read_csv(os.path.join(data_path, filename))
     prompts = data['prompts']
     answers = data['answers']
@@ -18,6 +19,7 @@ def read_data(data_path, filename="test_samples.csv"):
 
 
 def format_docs(docs):
+    """formatting function used in chain"""
     if 'question' in docs[0].metadata:  
             formatted_docs = "\n\n".join(doc.page_content for doc in docs)  
     else:
@@ -25,6 +27,7 @@ def format_docs(docs):
     return formatted_docs  
 
 def format_arc_doc(data):
+    """Defines the format of arc dataset that is used for loading dataset"""
     question = data['question']
     choices = data['choices']['text']
     labels = data['choices']['label']
