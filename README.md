@@ -4,7 +4,7 @@
 `config.yaml` 에서 data_root: 데이터 폴더의 경로, *_faiss_path는 FAISS 데이터베이스를 저장할 로컬 위치
 top_k는 상위 몇개까지 retriever가 뽑을지를 나타내는 하이퍼파라미터. 그외 chunk_size, chunk_overlap
 - data_root, ewha_faiss_path, arc_faiss_path는 본인 절대경로 기준으로 수정이 필요함.
-- NOTE: 레포내에 .env 파일을 만들어 UPSTAGE_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_ENDPOINT, LANGCHAIN_PROJECT, LANGCHAIN_API_KEY를 반드시 입력해두어야함.
+- NOTE: 레포내에 .env 파일을 만들어 UPSTAGE_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_ENDPOINT, LANGCHAIN_PROJECT, LANGCHAIN_API_KEY, ROOT를 반드시 입력해두어야함.
 
 #### How to play
 커맨드에 아래를 실행하면 데이터베이스를 불러와 chain을 정의하고 questions를 테스트해보고 정확도까지 출력해볼 수 있음.
