@@ -11,6 +11,26 @@ top_k는 상위 몇개까지 retriever가 뽑을지를 나타내는 하이퍼파
 ```
 python main.py
 ```
+
+##### main_multivec.py
+- `config.yaml`에 아래 4줄 추가
+    ```
+    summ_chroma_path: 24-LLM-Project/db/summ_chroma
+    summ_faiss_path: 24-LLM-Project/db/summ_faiss
+    pc_chroma_path: 24-LLM-Project/db/pc_chroma
+    pc_faiss_path: 24-LLM-Project/db/pc_faiss
+    ```
+    
+- command examples
+    - pc: parent-child
+    - summ: summary
+    ```
+    python main_multivec.py -v faiss -l pc
+    python main_multivec.py -v faiss -l summ
+    python main_multivec.py -v chroma -l pc
+    python main_multivec.py -v chroma -l summ
+    ```
+
 #### 호출 함수 관련
 - langchain과 관련된 핵심 메소드들은 `langchain_engine.py`에 정의되어 있음.
 - `utils.py` 에는 그 외에 필요한 함수들이 있음(ex. read data/yaml 등)
