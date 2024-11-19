@@ -19,7 +19,6 @@ from langchain_upstage import ChatUpstage, UpstageEmbeddings, UpstageLayoutAnaly
 from langchain_text_splitters import Language,RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS, Chroma
 
-
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
 from langchain_core.runnables import RunnablePassthrough
@@ -252,13 +251,6 @@ def load_arc():
         doc = Document(page_content=doc_content, metadata={"question": entry['question'], "choices": entry['choices']})
         train_docs.append(doc)
     return train_docs 
-
-def load_other_dataset():
-    """Loads *** dataset and make it as metadata"""
-    ds = load_dataset()
-    train_data = ds['train']
-    train_docs = []
-    return train_docs
 
 def get_arc_faiss(arc_data, save_dir="./db/arc_faiss", top_k=4):
     """Get FAISS retriever from arc dataset"""

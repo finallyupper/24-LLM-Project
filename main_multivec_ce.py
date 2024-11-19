@@ -9,23 +9,11 @@ from dotenv import load_dotenv
 from datasets import load_dataset
 from argparse import ArgumentParser
 from langchain_community.vectorstores import FAISS, Chroma
-
-
+from utils import * 
+from langchain_engine.langchain_engine import *
 import warnings
 warnings.filterwarnings('ignore') 
 
-from utils import * 
-from langchain_engine import *
-
-def load_custom_dataset(dataset_name):
-    """Load a custom dataset by name."""
-    if dataset_name == "arc": # use arc dataset
-        return load_arc()
-    elif dataset_name == "other dataset": # new dataset(ex:cosmosqa)
-        # add new load_dataset()
-        return load_other_dataset()
-    else:
-        raise ValueError(f"[ERROR] Unsupported dataset: {dataset_name}")
 
 def main(
     use_grounded,

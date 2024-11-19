@@ -12,7 +12,7 @@ import warnings
 warnings.filterwarnings('ignore') 
 
 from utils import * 
-from langchain_engine import *
+from langchain_engine.langchain_engine import *
 
 def main(
     use_grounded,
