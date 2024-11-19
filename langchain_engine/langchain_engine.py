@@ -322,7 +322,7 @@ def get_chroma(splits, save_dir="./db/chroma", top_k=4, collection_name=""):
     retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
     return retriever 
 
-def get_summ_docs(splits):
+def get_summ_docs(splits, doc_ids):
     llm = get_llm(temperature=0)
     chain = (
         {"doc": lambda x: x.page_content}
@@ -403,7 +403,7 @@ def get_summ_chroma(splits, save_dir="./db/summ_chroma", top_k=4, debug=True):
         retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
         doc_ids = [str(uuid.uuid4()) for _ in splits]
 
-        summary_docs = get_summ_docs(splits)
+        summary_docs = get_summ_docs(splits, doc_ids)
 
         retriever.vectorstore.add_documents(summary_docs)
         retriever.docstore.mset(list(zip(doc_ids, splits)))
@@ -488,7 +488,7 @@ def get_summ_faiss(splits, save_dir="./db/summ_faiss", top_k=4, debug=False):
     
     if not os.path.exists(docstore_path):
         doc_ids = [str(uuid.uuid4()) for _ in splits]
-        summary_docs = get_summ_docs(splits)
+        summary_docs = get_summ_docs(splits, doc_ids)
         vectorstore = get_faiss_vs(summary_docs, embeddings)
         
         # The retriever (empty to start)
