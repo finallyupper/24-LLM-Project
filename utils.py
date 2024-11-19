@@ -68,7 +68,7 @@ def eval(questions, answers, responses, debug=False):
         print(f"{question}\n")
         generated_answer = extract_answer(response)
         if debug:
-            print(f"[INFO][WHOLE RESPONSE]{response}")
+            print(f"[Total Response]{response}")
             if generated_answer:
                 print(f"\ngenerated answer: {generated_answer}, answer: {answer}")
             else:
