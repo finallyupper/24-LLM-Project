@@ -9,6 +9,7 @@ import json
 import uuid
 from tqdm import tqdm 
 
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.stores import InMemoryByteStore
 from langchain_core.documents import Document
@@ -19,6 +20,8 @@ from langchain_upstage import ChatUpstage, UpstageEmbeddings, UpstageLayoutAnaly
 from langchain_text_splitters import Language,RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS, Chroma
 
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
@@ -170,16 +173,79 @@ def get_faiss(splits, save_dir="./db/faiss", top_k=4):
     retriever = vectorstore.as_retriever(search_kwargs={"k": top_k}) # default = 4
     return retriever 
 
-def get_bm25(splits, top_k=4):
-    bm25_retriever  = BM25Retriever.from_documents(documents=splits)
-    bm25_retriever.k = top_k 
-    return bm25_retriever 
+def get_bm25(splits, save_dir="./db/bm25", top_k=4):
+    # Where to save BM25
+    bm25_path = os.path.join(save_dir, "bm25.pkl")
+
+    # Load BM25 from local
+    print("[INFO] Get retriever BM25 ...")
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    if not os.path.exists(bm25_path):
+        print("[INFO] Creating BM25 index...")
+        # Make BM25
+        bm25_retriever = BM25Retriever.from_documents(documents=splits)
+        bm25_retriever.k = top_k
+        # Save BM25
+        with open(bm25_path, "wb") as f:
+            pickle.dump(bm25_retriever, f)
+        print(f"[INFO] Successfully saved BM25 index to {bm25_path}!")
+    else:
+        # Load BM25 from local
+        with open(bm25_path, "rb") as f:
+            bm25_retriever = pickle.load(f)
+        print(f"[INFO] Load BM25 index from {bm25_path}...")
+
+    bm25_retriever.k = top_k
+    return bm25_retriever
 
 def get_ensemble_retriever(r1, r2, w1=0.7, w2=0.3):
     ensemble_retriever = EnsembleRetriever(
         retrievers=[r1, r2], weights=[w1, w2]
         )
     return ensemble_retriever 
+
+def load_cross_encoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2"):
+    """Load the cross-encoder model and tokenizer."""
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+    return tokenizer, model
+
+def re_rank_with_cross_encoder(query, docs, tokenizer, model, device="cpu"):
+    """
+    Re-rank documents using a cross-encoder model.
+    Args:
+        query: Search query string.
+        docs: List of Document objects to rank.
+        tokenizer: Cross-encoder tokenizer.
+        model: Cross-encoder model.
+        device: Device to run the model on ('cpu' or 'cuda').
+    Returns:
+        Ranked list of Document objects.
+    """
+    model.to(device)
+    inputs = [
+        tokenizer(
+            query,
+            doc.page_content,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512
+        )
+        for doc in docs
+    ]
+    scores = []
+    with torch.no_grad():
+        for input_batch in inputs:
+            input_batch = {k: v.to(device) for k, v in input_batch.items()}
+            outputs = model(**input_batch)
+            scores.append(outputs.logits.squeeze().item())
+
+    # Sort documents by score (descending)
+    ranked_docs = [doc for _, doc in sorted(zip(scores, docs), key=lambda x: x[0], reverse=True)]
+    return ranked_docs
+
 
 def to_document(text: str, meta):
     return Document(id=meta, page_content=text, metadata={"p_id": meta})
@@ -209,12 +275,12 @@ def load_ewha(data_root):
             )
         splits[-1].page_content = chain.invoke(splits[-1])
 
-        with open(ewha_chunks_path, 'w') as f:
+        with open(ewha_chunks_path, 'w', encoding='utf-8') as f:
             for doc in splits:
                 f.write(doc.json() + '\n')
     else:
         splits = []
-        with open(ewha_chunks_path, 'r') as f:
+        with open(ewha_chunks_path, 'r', encoding='utf-8') as f:
             for line in f:
                 data = json.loads(line)
                 obj = Document(**data)
@@ -231,6 +297,13 @@ def load_arc():
         doc = Document(page_content=doc_content, metadata={"question": entry['question'], "choices": entry['choices']})
         train_docs.append(doc)
     return train_docs 
+
+def load_other_dataset():
+    """Loads *** dataset and make it as metadata"""
+    ds = load_dataset()
+    train_data = ds['train']
+    train_docs = []
+    return train_docs
 
 def get_arc_faiss(arc_data, save_dir="./db/arc_faiss", top_k=4):
     """Get FAISS retriever from arc dataset"""
@@ -492,16 +565,14 @@ def retriever_test(vectorstore, retriever, question, retriever_name):
     print(f"<Question> {question}")
     print(f"====== {retriever_name} child docs result ========")
     for i, doc in enumerate(sub_docs):
-        print(
-            f"[문서 {i}][{len(doc.page_content)}] {doc.page_content.replace('\n', ' ')}"
-        )
+        doc_content = doc.page_content.replace('\n', ' ')
+        print(f"[문서 {i}][{len(doc.page_content)}] {doc_content}")
     print()
     retrieved_docs = retriever.invoke(question)
     print(f"====== {retriever_name} docs result ========")
     for i, doc in enumerate(retrieved_docs):
-        print(
-            f"[문서 {i}][{len(doc.page_content)}] {doc.page_content.replace('\n', ' ')}"
-        )
+        doc_content = doc.page_content.replace('\n', ' ')
+        print(f"[문서 {i}][{len(doc.page_content)}] {doc_content}")
     print()
     print()
 
@@ -518,11 +589,25 @@ def get_chain(llm, prompt, retriever=None):
         chain = prompt_template | llm
     return chain
 
-def retrieve(db, query):
-    #query_embedder = UpstageEmbeddings(model="solar-embedding-1-large-query")
-    #query_vector = query_embedder.embed_query(query)
-    context = db.vectorstore.similarity_search(query)
-    return context
+def retrieve(db, query, tokenizer=None, model=None, device="cpu", use_reranking=False):
+    """
+    Perform a query on the retriever.
+    If db is an EnsembleRetriever, use its invoke method.
+    Otherwise, access the vectorstore directly.
+    Optionally re-rank results using a cross-encoder.
+    """
+    if isinstance(db, EnsembleRetriever):
+        docs = db.invoke(query)
+    else:
+        docs = db.vectorstore.similarity_search(query)
+    
+    # Apply Cross-encoder re-ranking if enabled
+    if use_reranking and tokenizer and model:
+        print("[INFO] Applying Cross-encoder re-ranking...")
+        docs = re_rank_with_cross_encoder(query, docs, tokenizer, model, device)
+    
+    return docs
+
 
 def grounded_check(context, answer):
     groundedness_check = UpstageGroundednessCheck()
@@ -533,6 +618,7 @@ def grounded_check(context, answer):
     response = groundedness_check.invoke(request_input)
     #print(response)
     return response == "grounded" # grounded, notGrounded, or notSure
+
 
 def get_pc_responses(db, chain, prompts, use_grounded):
     responses = []
@@ -545,3 +631,4 @@ def get_pc_responses(db, chain, prompts, use_grounded):
                 response = chain.invoke({"question": prompt, "context": context})
         responses.append(response.content)
     return responses
+

@@ -1,23 +1,32 @@
 '''
-Last Updated: 24.11.16
+Last Updated: 24.11.17
 - parent-child vectorspace (Opt: summary, hypo-queries)
 - student-teacher structure
+- Ensemble : ewha.pdf base retriever model + custom_dataset retriever model
+- Cross-encoder Re-ranker
 '''
 from dotenv import load_dotenv
 from datasets import load_dataset
 from argparse import ArgumentParser
 from langchain_community.vectorstores import FAISS, Chroma
-
+from utils import * 
+from langchain_engine.langchain_engine import *
 import warnings
 warnings.filterwarnings('ignore') 
 
-from utils import * 
-from langchain_engine.langchain_engine import *
 
 def main(
     use_grounded,
     vec_layer,
     vec_store,
+    ### Custom Dataset Retriever to ensemble ###
+    dataset_name="arc", # (default: ARC)
+    retriever_type="faiss", # Retriever type: faiss or chroma
+    ### Ensemble : True/False ###
+    use_ensemble=True,
+    use_reranking=True,
+    cross_encoder_model="cross-encoder/ms-marco-MiniLM-L-6-v2",
+    device="cpu"
 ):
     # Load configs
     load_env(".env")
@@ -46,6 +55,26 @@ def main(
                                 top_k=top_k, 
                                 chunk_size=chunk_size, chunk_overlap=chunk_overlap
                                 )
+        
+    # Load custom dataset retriever
+    custom_data = load_custom_dataset(dataset_name)
+    if retriever_type == "faiss":
+        custom_retriever = get_faiss(custom_data, save_dir=f"./db/{dataset_name}_faiss", top_k=top_k)
+    elif retriever_type == "chroma":
+        custom_retriever = get_chroma(custom_data, save_dir=f"./db/{dataset_name}_chroma", top_k=top_k)
+    else:
+        raise ValueError("[ERROR] Invalid retriever_type value")
+    
+    # Apply ensemble retriever
+    if use_ensemble:
+        print("[INFO] Creating ensemble retriever...")
+        retriever = get_ensemble_retriever(retriever, custom_retriever, w1=0.7, w2=0.3)
+
+    # Load Cross-encoder model
+    tokenizer, model = None, None
+    if use_reranking:
+        tokenizer, model = load_cross_encoder(cross_encoder_model)
+
 
     # Make prompt template
     prompt = """
@@ -62,13 +91,19 @@ def main(
     # Make llm
     llm = get_llm(temperature=0)
 
-    # 8. Get langchain using template
+    # Get langchain using template
     chain = get_chain(llm, prompt, retriever=None)
 
     # Get model's response from given prompts
-    print("[INFO] Load test dataset...") 
-    questions, answers = read_data(data_root, filename="final_30_samples.csv") 
-    responses = get_pc_responses(retriever, chain, prompts=questions, use_grounded=use_grounded)
+    print("[INFO] Load test dataset...")
+    questions, answers = read_data(data_root, filename="final_30_samples.csv")
+    responses = []
+    for question in questions:
+        docs = retrieve(retriever, question, tokenizer, model, device, use_reranking)
+        context = "\n".join([doc.page_content for doc in docs])
+        response = chain.invoke({"question": question, "context": context})
+        responses.append(response.content)
+
     acc = eval(questions, answers, responses, debug=False)
 
 if __name__=="__main__":
