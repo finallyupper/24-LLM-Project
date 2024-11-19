@@ -16,7 +16,6 @@ warnings.filterwarnings('ignore')
 
 
 def main(
-    use_grounded,
     vec_layer,
     vec_store,
     ### Custom Dataset Retriever to ensemble ###
@@ -92,11 +91,11 @@ def main(
     llm = get_llm(temperature=0)
 
     # Get langchain using template
-    chain = get_chain(llm, prompt, retriever=None)
+    chain = get_qa_chain(llm, retriever, prompt_template=prompt) 
 
     # Get model's response from given prompts
     print("[INFO] Load test dataset...")
-    questions, answers = read_data(data_root, filename="final_30_samples.csv")
+    questions, answers = read_data(data_root, filename="test_samples.csv")
     responses = []
     for question in questions:
         docs = retrieve(retriever, question, tokenizer, model, device, use_reranking)
@@ -108,7 +107,6 @@ def main(
 
 if __name__=="__main__":
     PARSER = ArgumentParser()
-    PARSER.add_argument("--use_grounded", action='store_true')
     PARSER.add_argument("-l", '--vec_layer', choices=["summ", "pc"], default="summ")
     PARSER.add_argument("-v", '--vec_store', choices=["faiss", "chroma"], default="faiss")
     main(**vars(PARSER.parse_args()))

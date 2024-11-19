@@ -9,6 +9,7 @@ import json
 import uuid
 from tqdm import tqdm 
 import torch 
+from collections import Counter
 
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.stores import InMemoryByteStore
@@ -115,7 +116,6 @@ def get_qa_chain(llm, retriever, prompt_template=None):
         | prompt_template
         | llm
     )
-
     return rag_chain 
     
 def get_responses(chain, prompts):
@@ -222,7 +222,10 @@ def load_ewha(data_root):
                 | llm
                 | StrOutputParser()
             )
-        splits[-1].page_content = chain.invoke(splits[-1])
+        for _ in range(5):
+            splits[-1].page_content = chain.invoke(splits[-1])
+            last_chunk = splits[-1].page_content.split(' ')
+            if max(Counter(last_chunk).values()) < 3: break
 
         with open(ewha_chunks_path, 'w') as f:
             for doc in splits:
@@ -234,8 +237,10 @@ def load_ewha(data_root):
             for line in f:
                 data = json.loads(line)
                 obj = Document(**data)
+                print(len(obj.page_content))
                 splits.append(obj)
     print(f"[INFO] # of splits: {len(splits)}")
+    exit(-1)
     return splits 
 
 def load_arc():
@@ -296,7 +301,16 @@ def get_chroma_vs(save_dir, embeddings, collection_name):
             collection_name=collection_name
         )    
     return vectorstore
-        
+    
+def get_MultiVecRetriever(vectorstore, store, id_key, top_k):
+    retriever = MultiVectorRetriever(
+        vectorstore=vectorstore,
+        byte_store=store,
+        id_key=id_key,
+        search_kwargs={"k": top_k},
+    )
+    return retriever
+
 def get_chroma(splits, save_dir="./db/chroma", top_k=4, collection_name=""):
     embeddings = get_embedding() 
     if not os.path.exists(save_dir):
@@ -307,6 +321,33 @@ def get_chroma(splits, save_dir="./db/chroma", top_k=4, collection_name=""):
         vectorstore = get_chroma_vs(save_dir, embeddings, collection_name)
     retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
     return retriever 
+
+def get_summ_docs(splits):
+    llm = get_llm(temperature=0)
+    chain = (
+        {"doc": lambda x: x.page_content}
+        | ChatPromptTemplate.from_template("Summarize the following document:\n\n{doc}")
+        | llm
+        | StrOutputParser()
+    )
+    summaries = chain.batch(splits, {"max_concurrency": 5})
+    summary_docs = [
+            Document(page_content=s, metadata={id_key: doc_ids[i]})
+            for i, s in enumerate(summaries)
+        ]
+    return summary_docs
+
+def get_child(splits, doc_ids, child_text_splitter):
+    data = dict()
+    sub_docs = []
+    for i, doc in enumerate(splits):
+        _id = doc_ids[i]
+        _sub_docs = child_text_splitter.split_documents([doc])
+        for _doc in _sub_docs:
+            _doc.metadata[id_key] = _id
+        data[doc.page_content] = [s.page_content for s in _sub_docs]
+    sub_docs.extend(_sub_docs)
+    return sub_docs, data
 
 def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, chunk_overlap=100, debug=True):
     """Parent Document Retreiver using Chroma"""
@@ -320,12 +361,7 @@ def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, c
     # Layer to store parent document
     store = InMemoryByteStore()
     id_key = "doc_id"
-    retriever = MultiVectorRetriever(
-        vectorstore=vectorstore,
-        byte_store=store,
-        id_key=id_key,
-        search_kwargs={"k": top_k},
-    )
+    retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
 
     doc_ids = [str(uuid.uuid4()) for _ in splits]
 
@@ -334,15 +370,7 @@ def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, c
                 chunk_overlap=chunk_overlap,
                 chunk_size=chunk_size)
     
-    data = dict()
-    sub_docs = []
-    for i, doc in enumerate(splits):
-        _id = doc_ids[i]
-        _sub_docs = child_text_splitter.split_documents([doc])
-        for _doc in _sub_docs:
-            _doc.metadata[id_key] = _id
-        data[doc.page_content] = [s.page_content for s in _sub_docs]
-    sub_docs.extend(_sub_docs)
+    sub_docs, data = get_child(splits, doc_ids, child_text_splitter)
 
     retriever.vectorstore.add_documents(sub_docs)
     retriever.docstore.mset(list(zip(doc_ids, splits)))
@@ -371,28 +399,11 @@ def get_summ_chroma(splits, save_dir="./db/summ_chroma", top_k=4, debug=True):
     store = InMemoryByteStore()    
 
     if not os.path.exists(docstore_path):
-        llm = get_llm(temperature=0)
-        chain = (
-            {"doc": lambda x: x.page_content}
-            | ChatPromptTemplate.from_template("Summarize the following document:\n\n{doc}")
-            | llm
-            | StrOutputParser()
-        )
-        summaries = chain.batch(splits, {"max_concurrency": 5})
-
         # The retriever (empty to start)
-        retriever = MultiVectorRetriever(
-            vectorstore=vectorstore,
-            byte_store=store,
-            id_key=id_key,
-            search_kwargs={"k": top_k},
-        )
-    
+        retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
         doc_ids = [str(uuid.uuid4()) for _ in splits]
-        summary_docs = [
-            Document(page_content=s, metadata={id_key: doc_ids[i]})
-            for i, s in enumerate(summaries)
-        ]
+
+        summary_docs = get_summ_docs(splits)
 
         retriever.vectorstore.add_documents(summary_docs)
         retriever.docstore.mset(list(zip(doc_ids, splits)))
@@ -406,13 +417,7 @@ def get_summ_chroma(splits, save_dir="./db/summ_chroma", top_k=4, debug=True):
         with open(docstore_path, "rb") as file:
             store_dict = pickle.load(file)
         store.mset(list(store_dict.items()))
-
-        retriever = MultiVectorRetriever(
-            vectorstore=vectorstore,
-            byte_store=store,
-            id_key=id_key,
-            search_kwargs={"k": top_k},
-        )
+        retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
         print(f"[INFO] Load DB from {save_dir}...") 
     
     if debug:
@@ -430,63 +435,41 @@ def get_pc_faiss(splits, save_dir="./db/pc_faiss", top_k=4, chunk_size=1000, chu
     store = InMemoryByteStore()
     
     if not os.path.exists(docstore_path):
-        llm = get_llm(temperature=0)
-        chain = (
-            {"doc": lambda x: x.page_content}
-            | ChatPromptTemplate.from_template("Summarize the following document:\n\n{doc}")
-            | llm
-            | StrOutputParser()
-        )
-        doc_ids = [str(uuid.uuid4()) for _ in splits]
-        summaries = chain.batch(splits, {"max_concurrency": 5})
-        summary_docs = [
-            Document(page_content=s, metadata={id_key: doc_ids[i]})
-            for i, s in enumerate(summaries)
-        ]
-
-        vectorstore = get_faiss_vs(summary_docs, embeddings)
-
-        # The retriever (empty to start)
-        retriever = MultiVectorRetriever(
-            vectorstore=vectorstore,
-            byte_store=store,
-            id_key=id_key,
-            search_kwargs={"k": top_k},
-        )
         doc_ids = [str(uuid.uuid4()) for _ in splits]
 
-        # child splitter
+        # splitter to make child chunk
         child_text_splitter = RecursiveCharacterTextSplitter(
                     chunk_overlap=chunk_overlap,
                     chunk_size=chunk_size)
         
-        data = dict()
-        sub_docs = []
-        for i, doc in enumerate(splits):
-            _id = doc_ids[i]
-            _sub_docs = child_text_splitter.split_documents([doc])
-            for _doc in _sub_docs:
-                _doc.metadata[id_key] = _id
-            data[doc.page_content] = [s.page_content for s in _sub_docs]
-        sub_docs.extend(_sub_docs)
-        retriever.vectorstore.add_documents(sub_docs)
+        sub_docs, data = get_child(splits, doc_ids, child_text_splitter)
+        vectorstore = get_faiss_vs(sub_docs, embeddings)
+
+        # The retriever (empty to start)
+        retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
+
+        #retriever.vectorstore.add_documents(sub_docs)
         retriever.docstore.mset(list(zip(doc_ids, splits)))
         vectorstore.save_local(save_dir)
         with open(docstore_path, "wb") as file:
             pickle.dump(retriever.byte_store.store, file, pickle.HIGHEST_PROTOCOL)
         print("[INFO] Successfully saved Vectorscore to local!")
+
+        #retriever.vectorstore.add_documents(summary_docs)
+        retriever.docstore.mset(list(zip(doc_ids, splits)))
+        # Save the vectorstore and docstore to disk
+        vectorstore.save_local(save_dir)
+        with open(docstore_path, "wb") as file:
+            pickle.dump(retriever.byte_store.store, file, pickle.HIGHEST_PROTOCOL)
+        print("[INFO] Successfully saved Vectorscore to local!")
+        
     else:
         with open(docstore_path, "rb") as file:
             store_dict = pickle.load(file)
         store.mset(list(store_dict.items()))
 
         vectorstore = FAISS.load_local(save_dir, embeddings, allow_dangerous_deserialization=True) 
-        retriever = MultiVectorRetriever(
-            vectorstore=vectorstore,
-            byte_store=store,
-            id_key=id_key,
-            search_kwargs={"k": top_k},
-        )
+        retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
         print(f"[INFO] Load DB from {save_dir}...") 
 
     if debug:
@@ -504,29 +487,12 @@ def get_summ_faiss(splits, save_dir="./db/summ_faiss", top_k=4, debug=False):
     store = InMemoryByteStore()
     
     if not os.path.exists(docstore_path):
-        llm = get_llm(temperature=0)
-        chain = (
-            {"doc": lambda x: x.page_content}
-            | ChatPromptTemplate.from_template("Summarize the following document:\n\n{doc}")
-            | llm
-            | StrOutputParser()
-        )
         doc_ids = [str(uuid.uuid4()) for _ in splits]
-        summaries = chain.batch(splits, {"max_concurrency": 5})
-        summary_docs = [
-            Document(page_content=s, metadata={id_key: doc_ids[i]})
-            for i, s in enumerate(summaries)
-        ]
-
+        summary_docs = get_summ_docs(splits)
         vectorstore = get_faiss_vs(summary_docs, embeddings)
         
         # The retriever (empty to start)
-        retriever = MultiVectorRetriever(
-            vectorstore=vectorstore,
-            byte_store=store,
-            id_key=id_key,
-            search_kwargs={"k": top_k},
-        )
+        retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
     
         #retriever.vectorstore.add_documents(summary_docs)
         retriever.docstore.mset(list(zip(doc_ids, splits)))
@@ -541,12 +507,7 @@ def get_summ_faiss(splits, save_dir="./db/summ_faiss", top_k=4, debug=False):
         store.mset(list(store_dict.items()))
 
         vectorstore = FAISS.load_local(save_dir, embeddings, allow_dangerous_deserialization=True) 
-        retriever = MultiVectorRetriever(
-            vectorstore=vectorstore,
-            byte_store=store,
-            id_key=id_key,
-            search_kwargs={"k": top_k},
-        )
+        retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
         print(f"[INFO] Load DB from {save_dir}...") 
     
     if debug:

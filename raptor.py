@@ -181,17 +181,18 @@ def recursive_embed_cluster_summarize(texts, level, n_levels):
 
 def main():
     load_env()
+    # This model's maximum context length is 4000 tokens
     #splits = load_ewha("./data") 
     docs = load_docs("./data/") 
-    #splits = split_docs(docs, 300, 100) # Token limits..
-    splits = split_docs(docs, 1000, 100)
+    splits = split_docs(splits, 300, 100) # Token limits..
+    #splits = split_docs(docs, 1000, 100)
     docs_texts = [d.page_content for d in splits] 
 
     # Make Tree 
     leaf_texts = docs_texts # Set document text to leaf text 
 
     results = recursive_embed_cluster_summarize(
-        leaf_texts, level=1, n_levels=3
+        leaf_texts, level=1, n_levels=4
     ) 
     
     all_texts = leaf_texts.copy() 
