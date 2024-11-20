@@ -74,7 +74,9 @@ def load_docs(data_root):
     t.join()  
     return docs 
 
-def split_docs(docs, chunk_size, chunk_overlap):
+def split_docs(data_root="./data", chunk_size=300, chunk_overlap=100):
+    docs = load_docs(data_root)
+
     """Returns splits of docs using given chunk size and overlap"""
     print("[INFO] Spliting documents...")
     text_splitter = RecursiveCharacterTextSplitter.from_language(
@@ -86,7 +88,6 @@ def split_docs(docs, chunk_size, chunk_overlap):
     splits = text_splitter.split_documents(docs)
     print("[INFO] # of splits:", len(splits))
     return splits
-
 
 def get_embedding():
     """Loads upstage embedding"""
