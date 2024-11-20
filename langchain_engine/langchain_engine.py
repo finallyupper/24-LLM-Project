@@ -313,7 +313,7 @@ def get_MultiVecRetriever(vectorstore, store, id_key, top_k):
         search_kwargs={"k": top_k},
     )
     return retriever
-        
+
 def get_chroma(splits, save_dir="./db/chroma", top_k=4, chunk_size=None, chunk_overlap=None, collection_name=""):
     embeddings = get_embedding() 
     if not os.path.exists(save_dir):
@@ -630,4 +630,3 @@ def get_pc_responses(db, chain, prompts, use_grounded):
                 response = chain.invoke({"question": prompt, "context": context})
         responses.append(response) # response.content 
     return responses
-
