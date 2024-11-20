@@ -198,7 +198,7 @@ def to_document(text: str, meta):
         return Document(id=meta, page_content=remove_header(text), metadata={"p_id": meta})
     else: return Document(id=meta, page_content=text, metadata={"p_id": meta})
                 
-def load_ewha(data_root, json_name = "ewha_chunk_doc.json"):
+def load_ewha(data_root, chunk_size=None, chunk_overlap=None, json_name = "ewha_chunk_doc.json"):
     """
     Corrects the spacing in the given documents using chain and save as json file
     returns splits list

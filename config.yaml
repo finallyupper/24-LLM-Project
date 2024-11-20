@@ -1,5 +1,5 @@
 # config.yaml
-data_root: /home/yoojinoh/Others/NLP/24-LLM-Project/data
+data_root: /home/sml09181/SJ/nlp/24-LLM-Project/data
 chunk_size: 300
 chunk_overlap: 100
 top_k: 5 
@@ -7,10 +7,10 @@ top_k: 5
 ewha_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/RAPTOR_faiss_fix_overlap
 ewha_bm25_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/ewha/bm25_fix
 arc_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/arc/arc_faiss
-summ_chroma_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/summ_chroma
-summ_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/summ_faiss
-pc_chroma_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/pc_chroma
-pc_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/pc_faiss
+summ_chroma_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/summ_chroma
+summ_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/summ_faiss
+pc_chroma_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_chroma
+pc_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_faiss
 arc_bm25_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/arc/arc_bm25
 
 raptor_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/RAPTOR_faiss_fix_overlap
