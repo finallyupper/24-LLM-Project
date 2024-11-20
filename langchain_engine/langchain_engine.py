@@ -437,7 +437,7 @@ def get_pc_faiss(splits, save_dir="./db/pc_faiss", top_k=4, chunk_size=1000, chu
     id_key = "doc_id"
     store = InMemoryByteStore()
     
-    if not os.path.exists(docstore_path):zzz
+    if not os.path.exists(docstore_path):
         doc_ids = [str(uuid.uuid4()) for _ in splits]
 
         # splitter to make child chunk
