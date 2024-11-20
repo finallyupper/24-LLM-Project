@@ -9,6 +9,8 @@ import json
 import uuid
 from tqdm import tqdm 
 import torch 
+from collections import Counter
+from sys import exit
 
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.stores import InMemoryByteStore
@@ -153,6 +155,7 @@ def get_faiss(splits, save_dir="./db/faiss", top_k=4):
         print(f"[INFO] Load DB from {save_dir}...") 
 
     retriever = vectorstore.as_retriever(search_kwargs={"k": top_k}) # default = 4
+
     return retriever 
 
 def get_bm25(splits, save_dir="./db/bm25", top_k=4):
@@ -166,6 +169,7 @@ def get_bm25(splits, save_dir="./db/bm25", top_k=4):
     if not os.path.exists(bm25_path):
         print("[INFO] Creating BM25 index...")
         # Make BM25
+        print(splits)
         bm25_retriever = BM25Retriever.from_documents(documents=splits)
         bm25_retriever.k = top_k
         # Save BM25
@@ -181,8 +185,8 @@ def get_bm25(splits, save_dir="./db/bm25", top_k=4):
     bm25_retriever.k = top_k
     return bm25_retriever
 
-def get_ensemble_retriever(r1, r2, w1=0.7, w2=0.3):
-    ensemble_retriever = EnsembleRetriever(retrievers=[r1, r2], weights=[w1, w2])
+def get_ensemble_retriever(retrievers, weights):
+    ensemble_retriever = EnsembleRetriever(retrievers=retrievers, weights=weights)
     return ensemble_retriever  
 
 def remove_header(text):
@@ -193,12 +197,12 @@ def to_document(text: str, meta):
         return Document(id=meta, page_content=remove_header(text), metadata={"p_id": meta})
     else: return Document(id=meta, page_content=text, metadata={"p_id": meta})
                 
-def load_ewha(data_root):
+def load_ewha(data_root, json_name = "ewha_chunk_doc.json"):
     """
     Corrects the spacing in the given documents using chain and save as json file
     returns splits list
     """
-    ewha_chunks_path = os.path.join(data_root, "ewha_chunk_doc.json")
+    ewha_chunks_path = os.path.join(data_root, json_name)
 
     if not os.path.exists(ewha_chunks_path):
         filename = os.path.join(data_root, "ewha_full_text.txt")
@@ -222,7 +226,10 @@ def load_ewha(data_root):
                 | llm
                 | StrOutputParser()
             )
-        splits[-1].page_content = chain.invoke(splits[-1])
+        for _ in range(5):
+            splits[-1].page_content = chain.invoke(splits[-1])
+            last_chunk = splits[-1].page_content.split(' ')
+            if max(Counter(last_chunk).values()) < 3: break
 
         with open(ewha_chunks_path, 'w') as f:
             for doc in splits:
@@ -236,6 +243,7 @@ def load_ewha(data_root):
                 obj = Document(**data)
                 splits.append(obj)
     print(f"[INFO] # of splits: {len(splits)}")
+    #exit(-1)
     return splits 
 
 def load_arc():

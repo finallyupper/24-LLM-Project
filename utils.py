@@ -23,7 +23,8 @@ def format_docs(docs):
     if 'question' in docs[0].metadata:  
             formatted_docs = "\n\n".join(doc.page_content for doc in docs)  
     else:
-        formatted_docs = [doc.page_content for doc in docs] 
+       formatted_docs = [doc.page_content for doc in docs] 
+
     return formatted_docs  
 
 def format_arc_doc(data):

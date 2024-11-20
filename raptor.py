@@ -137,9 +137,9 @@ def embed_cluster_summarize_texts(texts, level):
     이 문서는 학칙의 핵심 내용을 포함하며, 총칙, 부설기관, 학사 운영, 학생 활동 및 행정 절차 등 주요 항목을 다룹니다.
 
     제공된 문서의 자세한 요약을 제공하십시오.
-
-    문서:
-    {context}
+    ----
+    #### 문서:
+    {doc}
     """
     llm = get_llm(temperature=0)
     chain = get_chain(llm, template) 
@@ -148,7 +148,7 @@ def embed_cluster_summarize_texts(texts, level):
         df_cluster = expanded_df[expanded_df["cluster"] == i] 
         #print(f"[DEBUGGING] {len(df_cluster)}")
         formatted_txt = fmt_txt(df_cluster) 
-        summaries.append(chain.invoke({"context": formatted_txt})) 
+        summaries.append(chain.invoke({"doc": formatted_txt})) 
     
     df_summary = pd.DataFrame(
         {
@@ -179,55 +179,37 @@ def recursive_embed_cluster_summarize(texts, level, n_levels):
     return results
 
 
-def main():
+def save_raptor():
     load_env()
-    #splits = load_ewha("./data") 
-    docs = load_docs("./data/") 
-    #splits = split_docs(docs, 300, 100) # Token limits..
-    splits = split_docs(docs, 1000, 100)
-    docs_texts = [d.page_content for d in splits] 
+    config = load_yaml("config.yaml") 
+    raptor_faiss_path = config['raptor_faiss_path'] 
+
+    splits = load_ewha("./data", json_name="ewha_chunk_doc_fix.json") 
+
+    chunk_size_tok = 1000; chunk_overlap=100
+    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+        chunk_size=chunk_size_tok, 
+        chunk_overlap=chunk_overlap
+    )
+    texts_split = text_splitter.split_documents(splits)
+    docs_texts = [d.page_content for d in texts_split] 
 
     # Make Tree 
     leaf_texts = docs_texts # Set document text to leaf text 
-
     results = recursive_embed_cluster_summarize(
         leaf_texts, level=1, n_levels=3
     ) 
-    
+
     all_texts = leaf_texts.copy() 
     for level in sorted(results.keys()):
         # Extract summarization from the level
         summaries = results[level][1]["summaries"].tolist()
         # Add summarization to all_texts
         all_texts.extend(summaries)
-    DB_INDEX = "./db/RAPTOR_faiss_original"
-    embeddings = get_embedding() 
-    if not os.path.exists(DB_INDEX):
-        vectorstore = FAISS.from_texts(texts=all_texts, embedding=embeddings)
-        vectorstore.save_local(folder_path=DB_INDEX)
-        retriever = vectorstore.as_retriever()
 
-    else:
-        retriever = get_faiss(splits, save_dir=DB_INDEX) 
-
-    prompt = """
-                Please provide most correct answer from the following context.
-                If the answer is not present in the context, please write "The information is not present in the context."
-                ---
-                Question: {question}
-                ---
-                Context: {context}
-            """ 
-    
-    llm = get_llm(temperature=0)
-    data_root = "./data"
-    chain = get_qa_chain(llm, retriever, prompt) 
-
-    print("[INFO] Load test dataset...") 
-    questions, answers = read_data(data_root, filename="final_30_samples.csv") 
-
-    responses = get_responses(chain=chain, prompts=questions)
-    acc = eval(questions, answers, responses, debug=True) 
+    if not os.path.exists(raptor_faiss_path):
+        vectorstore = FAISS.from_texts(texts=all_texts, embedding=get_embedding() )
+        vectorstore.save_local(folder_path=raptor_faiss_path)
 
 if __name__ == "__main__":
-    main() 
+    save_raptor() 
