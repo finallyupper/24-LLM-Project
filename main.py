@@ -118,5 +118,5 @@ if __name__=="__main__":
     PARSER = ArgumentParser()
     PARSER.add_argument("-e1", '--ewha_ret1', choices=ewha_retrievers_type, default=None)
     PARSER.add_argument("-e2", '--ewha_ret2', choices=ewha_retrievers_type, default=None)
-    PARSER.add_argument('--arc_ret', action=store_true)
+    PARSER.add_argument('--arc_ret', action='store_true')
     main(**vars(PARSER.parse_args()))
