@@ -37,6 +37,7 @@ def main(
         "summ_faiss": [load_ewha, get_summ_faiss, summ_faiss_path],
         "summ_chroma": [load_ewha, get_summ_chroma, summ_chroma_path],
         "rap_faiss": [split_docs, get_faiss, raptor_faiss_path],
+        "pc_chroma_fix": [split_docs, get_pc_chroma_fix, "/home/sml09181/SJ/nlp/24-LLM-Project/db/pc_chroma_fix"],
     }
 
     # Make embeddings, db, and rertriever 
@@ -46,7 +47,7 @@ def main(
     if ewha_ret2 is not None:
         splits = ret_dict.get(ewha_ret2)[0](data_root, chunk_size, chunk_overlap) 
         ewha_retriever2  = ret_dict.get(ewha_ret2)[1](splits, save_dir=ret_dict.get(ewha_ret2)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-        ewha_retriever_ensemble = get_ensemble_retriever(ewha_retriever1, ewha_retriever2, [0.5, 0.5])
+        ewha_retriever_ensemble = get_ensemble_retriever([ewha_retriever1, ewha_retriever2], [0.5, 0.5])
 
     if arc_ret:
         if not os.path.exists(arc_faiss_path):
@@ -54,7 +55,7 @@ def main(
         arc_retriever_faiss = get_arc_faiss(arc_data, save_dir="./db/arc_faiss",top_k=top_k) 
         arc_data = load_arc() 
         arc_retriever_bm25 = get_bm25(arc_data, top_k=top_k) 
-        arc_retriever_ensemble = get_ensemble_retriever(arc_retriever_faiss, arc_retriever_bm25, w1=0.5, w2=0.5) 
+        arc_retriever_ensemble = get_ensemble_retriever([arc_retriever_faiss, arc_retriever_bm25], [0.5, 0.5]) 
     
     # Make prompt template please write "The information is not present in the context." and 
     prompt = """
@@ -113,7 +114,7 @@ def main(
     """
 
 if __name__=="__main__":
-    ewha_retrievers_type = ["faiss", "bm25", "rap_faiss", "pc_faiss", "pc_chroma", "summ_faiss", "summ_chroma"]
+    ewha_retrievers_type = ["faiss", "bm25", "rap_faiss", "pc_faiss", "pc_chroma", "summ_faiss", "summ_chroma", "pc_chroma_fix"]
 
     PARSER = ArgumentParser()
     PARSER.add_argument("-e1", '--ewha_ret1', choices=ewha_retrievers_type, default=None)

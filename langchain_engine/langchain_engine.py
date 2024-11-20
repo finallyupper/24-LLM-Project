@@ -140,7 +140,7 @@ def get_faiss_vs(splits, embeddings):
     vectorstore = FAISS.from_documents(documents=splits, embedding=embeddings) 
     return vectorstore 
        
-def get_faiss(splits, save_dir="./db/faiss", top_k=4): 
+def get_faiss(splits, save_dir="./db/ewha/ewha_faiss_fix", chunk_size=None, chunk_overlap=None, top_k=4): 
     # returns retriever FAISS 
     embeddings = get_embedding()
     print("[INFO] Get retriever FAISS ...")
@@ -158,7 +158,7 @@ def get_faiss(splits, save_dir="./db/faiss", top_k=4):
 
     return retriever 
 
-def get_bm25(splits, save_dir="./db/bm25", top_k=4):
+def get_bm25(splits, save_dir="./db/bm25", chunk_size=None, chunk_overlap=None, top_k=4):
     # Where to save BM25
     bm25_path = os.path.join(save_dir, "bm25.pkl")
 
@@ -301,7 +301,8 @@ def get_chroma_vs(save_dir, embeddings, collection_name):
     vectorstore = Chroma(
             persist_directory=save_dir,
             embedding_function=embeddings,
-            collection_name=collection_name
+            collection_name=collection_name,
+            collection_metadata = {'hnsw:space': 'cosine'},
         )    
     return vectorstore
     
@@ -325,7 +326,7 @@ def get_chroma(splits, save_dir="./db/chroma", top_k=4, chunk_size=None, chunk_o
     retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
     return retriever 
 
-def get_summ_docs(splits, doc_ids):
+def get_summ_docs(splits, doc_ids, id_key):
     llm = get_llm(temperature=0)
     chain = (
         {"doc": lambda x: x.page_content}
@@ -340,7 +341,7 @@ def get_summ_docs(splits, doc_ids):
         ]
     return summary_docs
 
-def get_child(splits, doc_ids, child_text_splitter):
+def get_child(splits, doc_ids, child_text_splitter, id_key):
     data = dict()
     sub_docs = []
     for i, doc in enumerate(splits):
@@ -352,7 +353,49 @@ def get_child(splits, doc_ids, child_text_splitter):
     sub_docs.extend(_sub_docs)
     return sub_docs, data
 
-def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, chunk_overlap=100, debug=True):
+def get_pc_chroma_fix(splits, save_dir="./db/pc_chroma_fix", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
+    """Parent Document Retreiver using Chroma"""
+    embeddings = get_embedding() 
+    #docstore_path = os.path.join(save_dir, "docstore_pc.pkl")
+    os.makedirs(save_dir, exist_ok=True) 
+    
+    # The vectorstore to use to index the child chunks
+    vectorstore = get_chroma_vs(save_dir, embeddings, "parent-child")
+
+    # Layer to store parent document
+    store = InMemoryByteStore()
+    id_key = "doc_id"
+    retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
+
+    
+    # splitter to make chunk
+    parent_text_splitter = RecursiveCharacterTextSplitter(
+                chunk_overlap=100,
+                chunk_size=800)
+
+    child_text_splitter = RecursiveCharacterTextSplitter(
+                chunk_overlap=chunk_overlap,
+                chunk_size=chunk_size)
+
+    splits = parent_text_splitter.split_documents(splits)
+    doc_ids = [str(uuid.uuid4()) for _ in splits]
+
+    sub_docs, data = get_child(splits, doc_ids, child_text_splitter, id_key)
+    retriever.vectorstore.add_documents(sub_docs)
+    retriever.docstore.mset(list(zip(doc_ids, splits)))
+    
+    # Save as json file
+    json_path = os.path.join(save_dir, f"./ewha_pc_{chunk_size}_{chunk_overlap}.json")
+    with open(json_path, 'w') as f:
+        json.dump(data, f, indent=4, ensure_ascii = False) 
+
+    if debug:
+        print("[DEBUG] Testing Parent-Child ...")
+        retriever_test(vectorstore, retriever, "휴학은 최대 몇 년까지 할 수 있어?", "pc_chroma")
+        retriever_test(vectorstore, retriever, "생활환경대학의 기존 이름은?", "pc_chroma")
+    return retriever
+
+def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
     """Parent Document Retreiver using Chroma"""
     embeddings = get_embedding() 
     #docstore_path = os.path.join(save_dir, "docstore_pc.pkl")
@@ -373,11 +416,11 @@ def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, c
                 chunk_overlap=chunk_overlap,
                 chunk_size=chunk_size)
     
-    sub_docs, data = get_child(splits, doc_ids, child_text_splitter)
+    sub_docs, data = get_child(splits, doc_ids, child_text_splitter, id_key)
 
     retriever.vectorstore.add_documents(sub_docs)
     retriever.docstore.mset(list(zip(doc_ids, splits)))
-
+    
     # Save as json file
     json_path = os.path.join(save_dir, f"./ewha_pc_{chunk_size}_{chunk_overlap}.json")
     with open(json_path, 'w') as f:
@@ -406,7 +449,7 @@ def get_summ_chroma(splits, save_dir="./db/summ_chroma", top_k=4, chunk_size=Non
         retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
         doc_ids = [str(uuid.uuid4()) for _ in splits]
 
-        summary_docs = get_summ_docs(splits, doc_ids)
+        summary_docs = get_summ_docs(splits, doc_ids, id_key)
 
         retriever.vectorstore.add_documents(summary_docs)
         retriever.docstore.mset(list(zip(doc_ids, splits)))
@@ -445,7 +488,7 @@ def get_pc_faiss(splits, save_dir="./db/pc_faiss", top_k=4, chunk_size=1000, chu
                     chunk_overlap=chunk_overlap,
                     chunk_size=chunk_size)
         
-        sub_docs, data = get_child(splits, doc_ids, child_text_splitter)
+        sub_docs, data = get_child(splits, doc_ids, child_text_splitter, id_key)
         vectorstore = get_faiss_vs(sub_docs, embeddings)
 
         # The retriever (empty to start)
@@ -491,7 +534,7 @@ def get_summ_faiss(splits, save_dir="./db/summ_faiss", top_k=4, chunk_size=None,
     
     if not os.path.exists(docstore_path):
         doc_ids = [str(uuid.uuid4()) for _ in splits]
-        summary_docs = get_summ_docs(splits, doc_ids)
+        summary_docs = get_summ_docs(splits, doc_ids, id_key)
         vectorstore = get_faiss_vs(summary_docs, embeddings)
         
         # The retriever (empty to start)
