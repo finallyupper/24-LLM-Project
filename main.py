@@ -61,12 +61,12 @@ def main(
     
     # Make prompt template please write "The information is not present in the context." and 
     prompt = """
-                Provide most correct answer from the following context.
+                Please provide most correct answer from the following context.
                 If the answer or related information is not present in the context, 
                 solve the question without depending on the given context. 
-                Also, explain why each option is correct or incorrect step by step.
-                You should give clear answer. Also, You are smart and very good at STEM.
-                NOTE) You MUST answer like following format at the end.
+                Please summarize the information you referred to along with the reasons why.
+                You should give clear answer. Also, You are smart and very good at mathematics.
+                 NOTE) You MUST answer like following format at the end.
                 ---
 
                 ### Example of expected format: 
