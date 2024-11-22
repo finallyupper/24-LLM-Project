@@ -92,7 +92,7 @@ def main(
 
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
-    questions, answers = read_data(data_root, filename="final_30_samples.csv") 
+    questions, answers = read_data(data_root, filename="test_samples.csv") 
 
     responses = get_responses(chain=chain, prompts=questions)
     acc1 = eval(questions, answers, responses, debug=True) 
