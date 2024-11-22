@@ -186,7 +186,7 @@ def save_raptor():
 
     splits = load_ewha("./data", json_name="ewha_chunk_doc_fix.json") 
 
-    chunk_size_tok = 1000; chunk_overlap=100
+    chunk_size_tok = 1000; chunk_overlap=0
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         chunk_size=chunk_size_tok, 
         chunk_overlap=chunk_overlap
