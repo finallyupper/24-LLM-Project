@@ -119,6 +119,56 @@ def get_qa_chain(llm, retriever, prompt_template=None):
     )
 
     return rag_chain 
+
+# https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/router/multi_retrieval_qa.py#L22
+# https://github.com/langchain-ai/langchain/discussions/22905
+# def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
+#     """A multi-route chain that uses an LLM router chain to choose amongst retrieval
+#     qa chains."""
+
+#     if prompt_template is not None:
+#          prompt_template1 = PromptTemplate.from_template(prompt_template[0])
+#          prompt_template2 = PromptTemplate.from_template(prompt_template[0])
+#     else:
+#         prompt_template1 = hub.pull("rlm/rag-prompt") #QA prompt  https://smith.langchain.com/hub/rlm/rag-prompt?organizationId=5b2073af-2123-4ed3-b218-fa406e467d84 
+#         prompt_template2 = prompt_template1
+        
+#     retriever_infos = [
+#         {
+#             "name": "ewha_retriever",
+#             "description": "ensemble retriever for ewha.pdf",
+#             "retriever": BaseRetriever(),
+#             "prompt": PromptTemplate(template=prompt_template1, input_variables=["context", "question"])
+#         },
+#         {
+#             "name": "arc_retriever",
+#             "description": "ensemble retriever for mmlu-pro",
+#             "retriever": BaseRetriever(),
+#             "prompt": PromptTemplate(template=prompt_template2, input_variables=["context", "question"])
+#         }
+#     ]
+
+#     # default_retriever = BaseRetriever()
+#     # default_prompt = PromptTemplate(template="Your default prompt", input_variables=["input"])
+    
+#     multi_retrieval_qa_chain = MultiRetrievalQAChain.from_retrievers(
+#         llm=llm,
+#         retriever_infos=retriever_infos,
+#         chain_type='stuff', # "map_reduce", "refine"
+#         verbose=True,
+#         chain_type_kwargs={
+#             "verbose": True,
+#             input_variables=["context", "question"],
+#         }
+#     )
+
+#     # rag_chain  = (
+#     #     {"context": retriever | format_docs , "question": RunnablePassthrough()}
+#     #     | prompt_template
+#     #     | llm
+#     # )
+
+#     return multi_retrieval_qa_chain 
     
 def get_responses(chain, prompts):
     # read samples.csv file
@@ -297,13 +347,20 @@ def get_agent_executor(llm, r1, r2):
     
     return agent_executor
 
-def get_chroma_vs(save_dir, embeddings, collection_name):
-    vectorstore = Chroma(
-            persist_directory=save_dir,
-            embedding_function=embeddings,
-            collection_name=collection_name,
-            collection_metadata = {'hnsw:space': 'cosine'},
-        )    
+def get_chroma_vs(save_dir, embeddings, collection_name, cosine=False):
+    if cosine:
+        vectorstore = Chroma(
+                persist_directory=save_dir,
+                embedding_function=embeddings,
+                collection_name=collection_name,
+                collection_metadata = {'hnsw:space': 'cosine'},
+            )    
+    else:
+        vectorstore = Chroma(
+                persist_directory=save_dir,
+                embedding_function=embeddings,
+                collection_name=collection_name,
+            )    
     return vectorstore
     
 def get_MultiVecRetriever(vectorstore, store, id_key, top_k):
@@ -322,7 +379,7 @@ def get_chroma(splits, save_dir="./db/chroma", top_k=4, chunk_size=None, chunk_o
         vectorstore = Chroma.from_documents(collection_name=collection_name, documents=splits, embedding=embeddings, persist_directory=save_dir) 
     else:
         # If the db already exists, load from local.
-        vectorstore = get_chroma_vs(save_dir, embeddings, collection_name)
+        vectorstore = get_chroma_vs(save_dir, embeddings, collection_name, cosine=False)
     retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
     return retriever 
 
@@ -353,21 +410,20 @@ def get_child(splits, doc_ids, child_text_splitter, id_key):
     sub_docs.extend(_sub_docs)
     return sub_docs, data
 
-def get_pc_chroma_fix(splits, save_dir="./db/pc_chroma_fix", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
+def get_pc_chroma_cos(splits, save_dir="./db/pc_chroma_cos", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
     """Parent Document Retreiver using Chroma"""
     embeddings = get_embedding() 
     #docstore_path = os.path.join(save_dir, "docstore_pc.pkl")
     os.makedirs(save_dir, exist_ok=True) 
     
     # The vectorstore to use to index the child chunks
-    vectorstore = get_chroma_vs(save_dir, embeddings, "parent-child")
+    vectorstore = get_chroma_vs(save_dir, embeddings, "parent-child", cosine=True)
 
     # Layer to store parent document
     store = InMemoryByteStore()
     id_key = "doc_id"
     retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
 
-    
     # splitter to make chunk
     parent_text_splitter = RecursiveCharacterTextSplitter(
                 chunk_overlap=100,
@@ -402,7 +458,7 @@ def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, c
     os.makedirs(save_dir, exist_ok=True) 
     
     # The vectorstore to use to index the child chunks
-    vectorstore = get_chroma_vs(save_dir, embeddings, "parent-child")
+    vectorstore = get_chroma_vs(save_dir, embeddings, "parent-child", cosine=False)
 
     # Layer to store parent document
     store = InMemoryByteStore()

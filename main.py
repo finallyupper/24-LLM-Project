@@ -22,9 +22,11 @@ def main(
     arc_bm25_path = config['arc_bm25_path']
     summ_chroma_path = config['summ_chroma_path']
     summ_faiss_path = config['summ_faiss_path']
+    pc_chroma_path = config['pc_chroma_cos_path']
     pc_chroma_path = config['pc_chroma_path']
     pc_faiss_path = config['pc_faiss_path']
     raptor_faiss_path = config['raptor_faiss_path']
+    pc_chroma_cos_path = config['pc_chroma_cos_path']
     top_k = config['top_k']
 
     # Load and Split documents
@@ -37,7 +39,7 @@ def main(
         "summ_faiss": [load_ewha, get_summ_faiss, summ_faiss_path],
         "summ_chroma": [load_ewha, get_summ_chroma, summ_chroma_path],
         "rap_faiss": [split_docs, get_faiss, raptor_faiss_path],
-        "pc_chroma_fix": [split_docs, get_pc_chroma_fix, "/home/sml09181/SJ/nlp/24-LLM-Project/db/pc_chroma_fix"],
+        "pc_chroma_cos": [split_docs, get_pc_chroma_cos, pc_chroma_cos_path],
     }
 
     # Make embeddings, db, and rertriever 
@@ -59,12 +61,12 @@ def main(
     
     # Make prompt template please write "The information is not present in the context." and 
     prompt = """
-                Please provide most correct answer from the following context.
+                Provide most correct answer from the following context.
                 If the answer or related information is not present in the context, 
                 solve the question without depending on the given context. 
-                Please summarize the information you referred to along with the reasons why.
-                You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
+                Also, explain why each option is correct or incorrect step by step.
+                You should give clear answer. Also, You are smart and very good at STEM.
+                NOTE) You MUST answer like following format at the end.
                 ---
 
                 ### Example of expected format: 
@@ -92,7 +94,7 @@ def main(
 
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
-    questions, answers = read_data(data_root, filename="test_samples.csv") 
+    questions, answers = read_data(data_root, filename="test35_ewha.csv") 
 
     responses = get_responses(chain=chain, prompts=questions)
     acc1 = eval(questions, answers, responses, debug=True) 
@@ -114,7 +116,7 @@ def main(
     """
 
 if __name__=="__main__":
-    ewha_retrievers_type = ["faiss", "bm25", "rap_faiss", "pc_faiss", "pc_chroma", "summ_faiss", "summ_chroma", "pc_chroma_fix"]
+    ewha_retrievers_type = ["faiss", "bm25", "rap_faiss", "pc_faiss", "pc_chroma", "summ_faiss", "summ_chroma", "pc_chroma_cos"]
 
     PARSER = ArgumentParser()
     PARSER.add_argument("-e1", '--ewha_ret1', choices=ewha_retrievers_type, default=None)
