@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dotenv import load_dotenv
 import os
 import re
@@ -18,6 +19,7 @@ from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.output_parsers.openai_functions import JsonKeyOutputFunctionsParser
 from langchain.retrievers.multi_vector import MultiVectorRetriever
+from langchain.chains.router.multi_retrieval_qa import MultiRetrievalQAChain
 from langchain_upstage import ChatUpstage, UpstageEmbeddings, UpstageLayoutAnalysisLoader, UpstageGroundednessCheck
 from langchain_text_splitters import Language,RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS, Chroma
@@ -32,7 +34,21 @@ from langchain import hub
 from langchain.tools.retriever import create_retriever_tool
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-from utils import format_docs, format_arc_doc, document_to_dict
+from utils import format_docs, format_arc_doc, document_to_dict, MULTI_RETRIEVAL_ROUTER_TEMPLATE
+
+
+
+
+from typing import Any, Dict, List, Mapping, Optional
+from langchain_core.language_models import BaseLanguageModel
+from langchain_core.prompts import PromptTemplate
+from langchain_core.retrievers import BaseRetriever
+from langchain.chains import ConversationChain
+from langchain.chains.base import Chain
+from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
+from langchain.chains.retrieval_qa.base import BaseRetrievalQA, RetrievalQA
+from langchain.chains.router.base import MultiRouteChain
+from langchain.chains.router.llm_router import LLMRouterChain, RouterOutputParser
 
 def load_env(env_path=None):
     """Loads API keys"""
@@ -120,62 +136,150 @@ def get_qa_chain(llm, retriever, prompt_template=None):
 
     return rag_chain 
 
+class newMultiRetQAChain(MultiRetrievalQAChain):
+    """A multi-route chain that uses an LLM router chain to choose amongst retrieval
+    qa chains."""
+
+    router_chain: LLMRouterChain
+    """Chain for deciding a destination chain and the input to it."""
+    destination_chains: Mapping[str, BaseRetrievalQA]
+    """Map of name to candidate chains that inputs can be routed to."""
+    default_chain: Chain
+    """Default chain to use when router doesn't map input to one of the destinations."""
+
+    @property
+    def output_keys(self) -> List[str]:
+        return ["result"]
+
+    @classmethod
+    def from_retrievers(
+        cls,
+        llm: BaseLanguageModel,
+        retriever_infos: List[Dict[str, Any]],
+        default_retriever: Optional[BaseRetriever] = None,
+        default_prompt: Optional[PromptTemplate] = None,
+        default_chain: Optional[Chain] = None,
+        *,
+        default_chain_llm: Optional[BaseLanguageModel] = None,
+        **kwargs: Any,
+    ) -> newMultiRetQAChain:
+        if default_prompt and not default_retriever:
+            raise ValueError(
+                "`default_retriever` must be specified if `default_prompt` is "
+                "provided. Received only `default_prompt`."
+            )
+        destinations = [f"{r['name']}: {r['description']}" for r in retriever_infos]
+        destinations_str = "\n".join(destinations)
+
+        router_template = MULTI_RETRIEVAL_ROUTER_TEMPLATE.format(
+            destinations=destinations_str,
+        )
+
+        router_prompt = PromptTemplate(
+            template=router_template,
+            input_variables=["input"],
+            output_parser=RouterOutputParser(next_inputs_inner_key="query"),
+        )
+        router_chain = LLMRouterChain.from_llm(llm, router_prompt)
+        destination_chains = {}
+        for r_info in retriever_infos:
+            prompt = r_info.get("prompt")
+            retriever = r_info["retriever"]
+            
+            chain = RetrievalQA.from_llm(llm, prompt=prompt, return_source_documents=True, retriever=retriever)
+            name = r_info["name"]
+            destination_chains[name] = chain
+        if default_chain:
+            _default_chain = default_chain
+        elif default_retriever:
+            _default_chain = RetrievalQA.from_llm(
+                llm, prompt=default_prompt, return_source_documents=True, retriever=default_retriever
+            )
+        else:
+            prompt_template = DEFAULT_TEMPLATE.replace("input", "query")
+            prompt = PromptTemplate(
+                template=prompt_template, input_variables=["history", "query"]
+            )
+            if default_chain_llm is None:
+                raise NotImplementedError(
+                    "conversation_llm must be provided if default_chain is not "
+                    "specified. This API has been changed to avoid instantiating "
+                    "default LLMs on behalf of users."
+                    "You can provide a conversation LLM like so:\n"
+                    "from langchain_openai import ChatOpenAI\n"
+                    "llm = ChatOpenAI()"
+                )
+            _default_chain = ConversationChain(
+                llm=default_chain_llm,
+                prompt=prompt,
+                input_key="query",
+                output_key="result",
+            )
+        return cls(
+            router_chain=router_chain,
+            destination_chains=destination_chains,
+            default_chain=_default_chain,
+            **kwargs,
+        )
+
+
 # https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/router/multi_retrieval_qa.py#L22
 # https://github.com/langchain-ai/langchain/discussions/22905
-# def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
-#     """A multi-route chain that uses an LLM router chain to choose amongst retrieval
-#     qa chains."""
+def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
+    """A multi-route chain that uses an LLM router chain to choose amongst retrieval
+    qa chains."""
 
-#     if prompt_template is not None:
-#          prompt_template1 = PromptTemplate.from_template(prompt_template[0])
-#          prompt_template2 = PromptTemplate.from_template(prompt_template[0])
-#     else:
-#         prompt_template1 = hub.pull("rlm/rag-prompt") #QA prompt  https://smith.langchain.com/hub/rlm/rag-prompt?organizationId=5b2073af-2123-4ed3-b218-fa406e467d84 
-#         prompt_template2 = prompt_template1
+    if prompt_template is not None:
+         prompt_template1 = PromptTemplate.from_template(prompt_template[0]) # template=prompt_template[0], input_variables=["context", "question"]
+         prompt_template2 = PromptTemplate.from_template(prompt_template[1])
+    else:
+        prompt_template1 = hub.pull("rlm/rag-prompt") #QA prompt  https://smith.langchain.com/hub/rlm/rag-prompt?organizationId=5b2073af-2123-4ed3-b218-fa406e467d84 
+        prompt_template2 = prompt_template1
         
-#     retriever_infos = [
-#         {
-#             "name": "ewha_retriever",
-#             "description": "ensemble retriever for ewha.pdf",
-#             "retriever": BaseRetriever(),
-#             "prompt": PromptTemplate(template=prompt_template1, input_variables=["context", "question"])
-#         },
-#         {
-#             "name": "arc_retriever",
-#             "description": "ensemble retriever for mmlu-pro",
-#             "retriever": BaseRetriever(),
-#             "prompt": PromptTemplate(template=prompt_template2, input_variables=["context", "question"])
-#         }
-#     ]
+    retriever_infos = [
+        {
+            "name": "ewha_retriever",
+            "description": "이화여자대학교 학칙 문서를 위한 ensemble retriever:  이 문서는 학칙의 핵심 내용을 포함하며, 총칙, 부설기관, 학사 운영, 학생 활동 및 행정 절차 등 주요 항목을 다룹니다.",
+            "retriever": retrievers[0],
+            "prompt": prompt_template1
+        },
+        {
+            "name": "arc_retriever",
+            "description": "ensemble retriever for mmlu-pro: This dataset contains questions and answers related to the following subjects: law, psychology, business, philosophy, history.",
+            "retriever": retrievers[1],
+            "prompt": prompt_template2
+        }
+    ]
 
-#     # default_retriever = BaseRetriever()
-#     # default_prompt = PromptTemplate(template="Your default prompt", input_variables=["input"])
+    default_retriever = retrievers[0]
+    default_prompt = prompt_template1
     
-#     multi_retrieval_qa_chain = MultiRetrievalQAChain.from_retrievers(
-#         llm=llm,
-#         retriever_infos=retriever_infos,
-#         chain_type='stuff', # "map_reduce", "refine"
-#         verbose=True,
-#         chain_type_kwargs={
-#             "verbose": True,
-#             input_variables=["context", "question"],
-#         }
-#     )
-
-#     # rag_chain  = (
-#     #     {"context": retriever | format_docs , "question": RunnablePassthrough()}
-#     #     | prompt_template
-#     #     | llm
-#     # )
-
-#     return multi_retrieval_qa_chain 
+    multi_retrieval_qa_chain = newMultiRetQAChain.from_retrievers(
+        llm=llm,
+        retriever_infos=retriever_infos,
+        default_retriever=default_retriever,
+        default_prompt=default_prompt,
+        verbose=True
+    )
+    return multi_retrieval_qa_chain 
     
 def get_responses(chain, prompts):
     # read samples.csv file
     responses = []
     for prompt in tqdm(prompts, desc="Processing questions"):
         response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
-        responses.append(response.content)
+        print(response)
+        try:
+            responses.append(response.content)
+        except:
+            responses.append(response['result'])
+    """
+    {
+    'input': 'QUESTION1) 학칙에서 총장이 따로 정해야 하는 사항으로 옳은 것을 모두 고르시오.\n(A) 교양과목의 종류와 학점\n(B) 학과별 최소 전공 이수 학점\n(C) 수업시간표\n(D) 졸업논문의 시행 방법\n(E) A와 B만 올바름\n(F) A와 C만 올바름\n(G) A와 D만 올바름\n(H) A와 B와 C만 올바름\n(I) A와 B와 D만 올바름\n(J) A와 C와 D만 올바름', 
+    'query': '학칙에서 총장이 따로 정해야 하는 사항에 대해 알려주세요.', 
+    'result': '[답변]: (A) 학칙에서 총장이 따로 정해야 하는 사항'
+    }
+    """
     return responses
 
 def get_agent_responses(agent, prompts):
@@ -501,7 +605,7 @@ def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, c
         retriever_test(vectorstore, retriever, "생활환경대학의 기존 이름은?", "pc_chroma")
     return retriever
 
-def get_summ_chroma(splits, save_dir="./db/summ_chroma", top_k=4, chunk_size=None, chunk_overlap=None, debug=True):
+def get_summ_chroma(splits, save_dir="./db/summ_chroma", top_k=4, chunk_size=None, chunk_overlap=None, debug=False):
     """Parent Document Retreiver using Chroma with summarization"""
     embeddings = get_embedding() 
     docstore_path = os.path.join(save_dir, "docstore_summ.pkl")
@@ -541,7 +645,7 @@ def get_summ_chroma(splits, save_dir="./db/summ_chroma", top_k=4, chunk_size=Non
         retriever_test(vectorstore, retriever, "생활환경대학의 기존 이름은?", "summ_chroma")
     return retriever
         
-def get_pc_faiss(splits, save_dir="./db/pc_faiss", top_k=4, chunk_size=1000, chunk_overlap=100, debug=True):
+def get_pc_faiss(splits, save_dir="./db/pc_faiss", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
     embeddings = get_embedding() 
 
     docstore_path = os.path.join(save_dir, "docstore_pc.pkl")
