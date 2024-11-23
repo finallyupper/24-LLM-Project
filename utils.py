@@ -3,6 +3,31 @@ import re
 import pandas as pd
 import yaml
 
+MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
+    Given the input, choose the most appropriate model prompt based on the provided prompt descriptions.
+
+    "Prompt Name": "Prompt Description"
+
+    << FORMATTING >>
+    Return a markdown code snippet with a JSON object formatted to look like:
+    ```json
+    {{{{
+        "destination": string \ name of the retrieve to use or "DEFAULT"
+        "next_inputs": string \ an original version of the original input
+    }}}}
+    ```
+
+    REMEMBER: "destination" should be chosen based on the descriptions of the available prompts, or "DEFAULT" if no appropriate prompt is found.
+    REMEMBER: "next_inputs" MUST be the original input.
+
+    << CANDIDATE PROMPTS >>
+    {destinations}
+
+    << INPUT >>
+    {{input}}
+
+    << OUTPUT (remember to include the ```json)>>"""
+
 def load_yaml(file_path: str) -> dict:
     """Loads configurations from yaml file"""
     with open(file_path) as f:
