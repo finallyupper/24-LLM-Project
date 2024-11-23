@@ -5,6 +5,10 @@ from datasets import load_dataset
 from langchain_engine.langchain_engine import *
 warnings.filterwarnings('ignore') 
 
+"""
+Example command line:
+python main.py -e1 pc_chroma -e2 rap_faiss
+"""
 def main(
     ewha_ret1: str,
     ewha_ret2: str,
@@ -43,11 +47,15 @@ def main(
     }
 
     # Make embeddings, db, and rertriever 
-    splits = ret_dict.get(ewha_ret1)[0](data_root, chunk_size, chunk_overlap) 
+    if not os.path.exists(ret_dict.get(ewha_ret1)[2]): #Modified(Yoojin): only load docs if it is not in DB.
+        print(f"[INFO] {ret_dict.get(ewha_ret1)[2]} not exists")
+        splits = ret_dict.get(ewha_ret1)[0](data_root, chunk_size, chunk_overlap) 
     ewha_retriever1  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     
     if ewha_ret2 is not None:
-        splits = ret_dict.get(ewha_ret2)[0](data_root, chunk_size, chunk_overlap) 
+        if not os.path.exists(ret_dict.get(ewha_ret2)[2]):  #Modified(Yoojin): only load docs if it is not in DB.
+            print(f"[INFO] {ret_dict.get(ewha_ret2)[2]} not exists")
+            splits = ret_dict.get(ewha_ret2)[0](data_root, chunk_size, chunk_overlap) 
         ewha_retriever2  = ret_dict.get(ewha_ret2)[1](splits, save_dir=ret_dict.get(ewha_ret2)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         ewha_retriever_ensemble = get_ensemble_retriever([ewha_retriever1, ewha_retriever2], [0.5, 0.5])
 
@@ -59,14 +67,14 @@ def main(
         arc_retriever_bm25 = get_bm25(arc_data, top_k=top_k) 
         arc_retriever_ensemble = get_ensemble_retriever([arc_retriever_faiss, arc_retriever_bm25], [0.5, 0.5]) 
     
-    # Make prompt template please write "The information is not present in the context." and 
+    #Modified(Yoojin): Add one line, "To answer correctly, it's important for you to identify the key points (or keywords) of the question."
     prompt = """
                 Please provide most correct answer from the following context.
-                If the answer or related information is not present in the context, 
-                solve the question without depending on the given context. 
+                If the answer or related information is not present in the context, solve the question without depending on the given context. 
                 Please summarize the information you referred to along with the reasons why.
                 You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
+                To answer correctly, it's important for you to identify the key points (or keywords) of the question.
+                NOTE) You MUST answer like following format at the end.
                 ---
 
                 ### Example of expected format: 
@@ -97,7 +105,7 @@ def main(
     questions, answers = read_data(data_root, filename="test35_ewha.csv") 
 
     responses = get_responses(chain=chain, prompts=questions)
-    acc1 = eval(questions, answers, responses, debug=True) 
+    acc1 = eval(questions, answers, responses, debug=True) #Modified(Yoojin): Added wrong questions printing out codes in eval method
 
     # If You want to compare two chains, use the below code!
     """ 

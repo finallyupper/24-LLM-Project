@@ -64,11 +64,14 @@ def extract_again(response):
 
 def eval(questions, answers, responses, debug=False):
     cnt = 0
+    wrong_questions = []
     for question, answer, response in zip(questions, answers, responses):
         print("-"*10)
         print(f"{question}\n")
         generated_answer = extract_answer(response)
         if debug:
+            if len(response) > 601:
+                response = response[:600]
             print(f"[Total Response]{response}")
             if generated_answer:
                 print(f"\ngenerated answer: {generated_answer}, answer: {answer}")
@@ -79,9 +82,20 @@ def eval(questions, answers, responses, debug=False):
             continue
         if generated_answer in answer:
             cnt += 1
-
+        else:
+            wrong_question = re.findall(r"QUESTION(\d+)", question)
+            wrong_questions.append(wrong_question)
     accuracy = (cnt/len(answers))*100
     print(f"Accuracy: {accuracy}%")
     print("All Done") 
+    print(f"Wrong Answers in these questions:", end=" ")
+    for q in wrong_questions:
+        print(f"{q[0]},", end=" ") 
+
     return accuracy
 
+def document_to_dict(doc):
+    return {
+        "metadata": doc.metadata,
+        "page_content": doc.page_content,
+    }

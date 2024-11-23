@@ -32,7 +32,7 @@ from langchain import hub
 from langchain.tools.retriever import create_retriever_tool
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-from utils import format_docs, format_arc_doc
+from utils import format_docs, format_arc_doc, document_to_dict
 
 def load_env(env_path=None):
     """Loads API keys"""
@@ -247,7 +247,7 @@ def to_document(text: str, meta):
         return Document(id=meta, page_content=remove_header(text), metadata={"p_id": meta})
     else: return Document(id=meta, page_content=text, metadata={"p_id": meta})
                 
-def load_ewha(data_root, chunk_size=None, chunk_overlap=None, json_name = "ewha_chunk_doc.json"):
+def load_ewha(data_root, chunk_size=1000, chunk_overlap=100, json_name = "ewha_chunk_doc_fix.json"):
     """
     Corrects the spacing in the given documents using chain and save as json file
     returns splits list
@@ -406,8 +406,8 @@ def get_child(splits, doc_ids, child_text_splitter, id_key):
         _sub_docs = child_text_splitter.split_documents([doc])
         for _doc in _sub_docs:
             _doc.metadata[id_key] = _id
-        data[doc.page_content] = [s.page_content for s in _sub_docs]
-    sub_docs.extend(_sub_docs)
+        data[doc.page_content] = [s.page_content for s in _sub_docs] 
+        sub_docs.extend(_sub_docs) #Modified(Yoojin): fixed indentation error
     return sub_docs, data
 
 def get_pc_chroma_cos(splits, save_dir="./db/pc_chroma_cos", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
@@ -464,23 +464,36 @@ def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, c
     store = InMemoryByteStore()
     id_key = "doc_id"
     retriever = get_MultiVecRetriever(vectorstore, store, id_key, top_k)
-
     doc_ids = [str(uuid.uuid4()) for _ in splits]
 
-    # splitter to make child chunk
-    child_text_splitter = RecursiveCharacterTextSplitter(
-                chunk_overlap=chunk_overlap,
-                chunk_size=chunk_size)
+    #Modified(Yoojin)
+    json_path = os.path.join(save_dir, f"./ewha_pc_{chunk_size}_{chunk_overlap}.json")
+    sub_docs_path = os.path.join(save_dir, "./sub_docs.json")
     
-    sub_docs, data = get_child(splits, doc_ids, child_text_splitter, id_key)
+    # If the sub_docs, data already exists, load them. Otherwise make it!
+    if os.path.exists(sub_docs_path) and os.path.exists(json_path): 
+        with open(sub_docs_path, "r", encoding="utf-8") as f:
+            sub_docs = json.load(f)
+            sub_docs = [Document(metadata=doc["metadata"], page_content=doc["page_content"]) for doc in sub_docs]
+        with open(json_path, 'r') as f:
+            data = json.load(f) 
+    else:
+        # splitter to make child chunk
+        child_text_splitter = RecursiveCharacterTextSplitter(
+                    chunk_overlap=chunk_overlap,
+                    chunk_size=chunk_size)
+        
+        sub_docs, data = get_child(splits, doc_ids, child_text_splitter, id_key) 
+        # Save as json file
+        json_path = os.path.join(save_dir, f"./ewha_pc_{chunk_size}_{chunk_overlap}.json")
+        with open(json_path, 'w') as f:
+            json.dump(data, f, indent=4, ensure_ascii = False) 
+
+        with open("sub_docs.json", "w", encoding="utf-8") as f:
+            json.dump([document_to_dict(doc) for doc in sub_docs], f, ensure_ascii=False, indent=4)
 
     retriever.vectorstore.add_documents(sub_docs)
     retriever.docstore.mset(list(zip(doc_ids, splits)))
-    
-    # Save as json file
-    json_path = os.path.join(save_dir, f"./ewha_pc_{chunk_size}_{chunk_overlap}.json")
-    with open(json_path, 'w') as f:
-        json.dump(data, f, indent=4, ensure_ascii = False) 
 
     if debug:
         print("[DEBUG] Testing Parent-Child ...")
