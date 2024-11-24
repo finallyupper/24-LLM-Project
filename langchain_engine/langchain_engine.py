@@ -34,11 +34,8 @@ from langchain import hub
 from langchain.tools.retriever import create_retriever_tool
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-from utils import format_docs, format_arc_doc, document_to_dict, MULTI_RETRIEVAL_ROUTER_TEMPLATE
-
-
-
-
+from utils import *
+from prompts import MULTI_RETRIEVAL_ROUTER_TEMPLATE
 from typing import Any, Dict, List, Mapping, Optional
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import PromptTemplate
@@ -410,6 +407,62 @@ def load_arc():
         doc = Document(page_content=doc_content, metadata={"question": entry['question'], "choices": entry['choices']})
         train_docs.append(doc)
     return train_docs 
+
+def load_customed_datasets(type):
+    train_docs = []
+    if type == "law":
+        print("[INFO] Load ymoslem/Law-StackExchange dataset...")
+        ds_law = load_dataset("ymoslem/Law-StackExchange")
+        train_data_law = ds_law['train'] 
+        for entry in tqdm(train_data_law):
+            if len(entry['answers']) == 0:
+                continue 
+            doc_content = format_law_docs(entry) 
+            doc = Document(page_content=doc_content,
+                            metadata={"question": entry['question_title'], 
+                                      "details": entry['question_body'], 
+                                      "answers": entry["answers"]})
+            train_docs.append(doc) 
+        return train_docs  
+    
+    elif type == "psychology":
+        print("[INFO] Load BoltMonkey/psychology-question-answer dataset...")
+        ds_psy = load_dataset("BoltMonkey/psychology-question-answer")
+        train_data_psy = ds_psy['train'] 
+        for entry in tqdm(train_data_psy):
+            doc_content = format_psy_docs(entry) 
+            doc = Document(page_content=doc_content,
+                           metadata={"question": entry['question'],
+                                     "answer": entry['answer']}) 
+            train_docs.append(doc) 
+        return train_docs 
+    
+    elif type == "business":
+        print("[INFO] Load Rohit-D/synthetic-confidential-information-injected-business-excerpts dataset ...")
+        ds_bis = load_dataset("Rohit-D/synthetic-confidential-information-injected-business-excerpts")
+        train_data_bis = ds_bis['train']
+        for entry in tqdm(train_data_bis):
+            doc_content = format_bis_docs(entry)
+            doc = Document(page_content=doc_content,
+                           metadata={"excerpt": entry['Excerpt'],
+                                     "reason": entry["Reason"]})
+            train_docs.append(doc) 
+        return train_docs 
+    
+    elif type == "philosophy":
+        print("[INFO] Load sayhan/strix-philosophy-qa dataset ...")
+        ds_phi = load_dataset("sayhan/strix-philosophy-qa") 
+        train_data_phi = ds_phi['train'] 
+        for entry in tqdm(train_data_phi):
+            doc_content = format_phi_docs(entry) 
+            doc = Document(page_contet = doc_content,
+                           metadata= {"category": entry['category'],
+                                      "question": entry['question'],
+                                      "answer": entry['answer']})
+            train_docs.append(doc) 
+        return train_docs 
+    
+    assert len(train_docs) !=0, "Input correct type!"
 
 def load_custom_dataset(dataset_name):
     """Load a custom dataset by name."""
