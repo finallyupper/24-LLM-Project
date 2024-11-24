@@ -78,7 +78,7 @@ def format_phi_docs(data):
     question = data['question']
     answer = data['answer'] 
     formatted_doc = f"### Category: {category}\nQuestion: {question}\nAnswer:{answer}\n"
-    return format_doc
+    return formatted_doc
 
 def extract_answer(response):
     # funcion to extract an answer from response

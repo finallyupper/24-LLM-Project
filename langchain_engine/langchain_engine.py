@@ -12,6 +12,7 @@ from tqdm import tqdm
 import torch 
 from collections import Counter
 from sys import exit
+import random
 
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.stores import InMemoryByteStore
@@ -410,7 +411,7 @@ def load_arc():
 
 def load_customed_datasets(type):
     train_docs = []
-    if type == "law":
+    if type == "law": # 24.4k
         print("[INFO] Load ymoslem/Law-StackExchange dataset...")
         ds_law = load_dataset("ymoslem/Law-StackExchange")
         train_data_law = ds_law['train'] 
@@ -425,11 +426,16 @@ def load_customed_datasets(type):
             train_docs.append(doc) 
         return train_docs  
     
-    elif type == "psychology":
+    elif type == "psychology": # 197k
         print("[INFO] Load BoltMonkey/psychology-question-answer dataset...")
         ds_psy = load_dataset("BoltMonkey/psychology-question-answer")
         train_data_psy = ds_psy['train'] 
-        for entry in tqdm(train_data_psy):
+        sample_size = 20000 # Only use 20k because of memory issue 
+
+        train_data_list = list(train_data_psy)
+        sampled_data_psy = random.sample(train_data_list, sample_size)
+
+        for entry in tqdm(sampled_data_psy):
             doc_content = format_psy_docs(entry) 
             doc = Document(page_content=doc_content,
                            metadata={"question": entry['question'],
@@ -437,7 +443,7 @@ def load_customed_datasets(type):
             train_docs.append(doc) 
         return train_docs 
     
-    elif type == "business":
+    elif type == "business": # 1.02k
         print("[INFO] Load Rohit-D/synthetic-confidential-information-injected-business-excerpts dataset ...")
         ds_bis = load_dataset("Rohit-D/synthetic-confidential-information-injected-business-excerpts")
         train_data_bis = ds_bis['train']
@@ -449,13 +455,17 @@ def load_customed_datasets(type):
             train_docs.append(doc) 
         return train_docs 
     
-    elif type == "philosophy":
+    elif type == "philosophy": # 134k
         print("[INFO] Load sayhan/strix-philosophy-qa dataset ...")
         ds_phi = load_dataset("sayhan/strix-philosophy-qa") 
         train_data_phi = ds_phi['train'] 
-        for entry in tqdm(train_data_phi):
+        sample_size = 20000 # Only use 20k because of memory issue 
+        train_data_list = list(train_data_phi)
+        sampled_data_phi = random.sample(train_data_list, sample_size)
+
+        for entry in tqdm(sampled_data_phi):
             doc_content = format_phi_docs(entry) 
-            doc = Document(page_contet = doc_content,
+            doc = Document(page_content = doc_content,
                            metadata= {"category": entry['category'],
                                       "question": entry['question'],
                                       "answer": entry['answer']})

@@ -1,11 +1,23 @@
-default_prompt = """
+BASE_PROMPT = """
                 Please provide most correct answer from the following context.
-                If the answer is not present in the context, please write "The information is not present in the context."
+                If the answer or related information is not present in the context, 
+                solve the question without depending on the given context. 
+                Please summarize the information you referred to along with the reasons why.
+                You should give clear answer. Also, You are smart and very good at mathematics.
+                 NOTE) You MUST answer like following format at the end.
                 ---
-                Question: {question}
+
+                ### Example of expected format: 
+                [ANSWER]: (A) convolutional networks
+    
                 ---
-                Context: {context}
+                ###Question: 
+                {question}
+                ---
+                ###Context: 
+                {context}
             """
+
 
 MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     Given the input, choose the most appropriate model prompt based on the provided prompt descriptions.
@@ -32,6 +44,46 @@ MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
 
     << OUTPUT (remember to include the ```json)>>"""
 
+EWHA_PROMPT = """
+                Please provide most correct answer from the following context.
+                If the answer or related information is not present in the context, 
+                solve the question without depending on the given context. 
+                Please summarize the information you referred to along with the reasons why.
+                You should give clear answer. Also, You are smart and very good at mathematics.
+                 NOTE) You MUST answer like following format at the end.
+                ---
+
+                ### Example of expected format: 
+                [ANSWER]: (A) convolutional networks
+    
+                ---
+                ###Question: 
+                {question}
+                ---
+                ###Context: 
+                {context}
+            """
+
+ARC_PROMPT = """
+                Please provide most correct answer from the following context.
+                If the answer or related information is not present in the context, 
+                solve the question without depending on the given context. 
+                Please summarize the information you referred to along with the reasons why.
+                You should give clear answer. Also, You are smart and very good at mathematics.
+                 NOTE) You MUST answer like following format at the end.
+                ---
+
+                ### Example of expected format: 
+                [ANSWER]: (A) convolutional networks
+    
+                ---
+                ###Question: 
+                {question}
+                ---
+                ###Context: 
+                {context}
+            """
+
 
 RAPTOR_EWHA_TEMPLATE = """
     여기 이화여자대학교 학칙 문서가 있습니다.
@@ -44,7 +96,6 @@ RAPTOR_EWHA_TEMPLATE = """
     {doc}
     """
 
-# Law, Psychology, Business, Philosophy, History
 RAPTOR_LAW_TAMPLATE = """
     Here is a collection of legal questions and answers from the StackExchange Law site.
 
@@ -72,5 +123,29 @@ RAPTOR_PSYCHOLOGY_TEMPLATE = """
     #### Doc:
     {doc}
 """
+RAPTOR_BUSINESS_TEMPLATE = """
+    Here is a collection of business excerpt - Reasons pairs on  business report excerpts which contain relevant confidential/sensitive information.
 
+    This includes mentions of :
+    - Internal Marketing Strategies.
+    - Proprietary Product Composition.
+    - License Internals.
+    - Internal Sales Projections.
+    - Confidential Patent Details.
+    - Others.
 
+    Provide a clear and concise summary of the answer provided to the question.
+    ----
+    #### Doc:
+    {doc}
+"""
+
+RAPTOR_PHILOSOPHY_TEMPLATE = """
+    Here is a collection of question-and-answer pairs about philosophy.
+    Category is also mentioned for each question and answer pair.
+
+    Please provide a clear and concise summary of the answer provided to the question.
+    ----
+    #### Doc:
+    {doc}
+"""
