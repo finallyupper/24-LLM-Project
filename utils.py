@@ -2,31 +2,12 @@ import os
 import re
 import pandas as pd
 import yaml
+from bs4 import BeautifulSoup
 
-MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
-    Given the input, choose the most appropriate model prompt based on the provided prompt descriptions.
 
-    "Prompt Name": "Prompt Description"
-
-    << FORMATTING >>
-    Return a markdown code snippet with a JSON object formatted to look like:
-    ```json
-    {{{{
-        "destination": string \ name of the retrieve to use or "DEFAULT"
-        "next_inputs": string \ an original version of the original input
-    }}}}
-    ```
-
-    REMEMBER: "destination" should be chosen based on the descriptions of the available prompts, or "DEFAULT" if no appropriate prompt is found.
-    REMEMBER: "next_inputs" MUST be the original input.
-
-    << CANDIDATE PROMPTS >>
-    {destinations}
-
-    << INPUT >>
-    {{input}}
-
-    << OUTPUT (remember to include the ```json)>>"""
+def clean_html(html_text):
+    soup = BeautifulSoup(html_text, 'html.parser')
+    return soup.get_text()
 
 def load_yaml(file_path: str) -> dict:
     """Loads configurations from yaml file"""
@@ -60,9 +41,44 @@ def format_arc_doc(data):
     
     formatted_choices = "\n".join([f"{label}: {choice}" for label, choice in zip(labels, choices)])
     formatted_doc = f"Question: {question}\nChoices:\n{formatted_choices}\n"
-    
     return formatted_doc
 
+def format_law_docs(data): # one row
+    question = data['question_title']
+    _contexts = data['question_body']
+    _answers = data['answers'] 
+
+    formatted_questions = []
+    contexts = clean_html(_contexts)
+    def get_best_answer(answers):
+        # Sort answers by score in descending order
+        if len(answers) == 0:
+            print("HERE!")
+        best_answer = max(answers, key=lambda x: x['score'])
+        return best_answer['body'] 
+
+    best_answer = clean_html(get_best_answer(_answers))
+    formatted_doc = f"### Question: {question}\nDetails: {contexts}\nBest Answer: \n{best_answer}\n"
+    return formatted_doc
+
+def format_psy_docs(data):
+    question = data['question'] 
+    answer = data['answer'] 
+    formatted_doc = f"### Question: {question}\nAnswer:\n{answer}\n"
+    return formatted_doc
+
+def format_bis_docs(data):
+    excerpt = data['Excerpt']
+    reason = data['Reason']
+    formatted_doc = f"### Excerpt: {excerpt}\nReason:\n{reason}\n"
+    return formatted_doc 
+
+def format_phi_docs(data):
+    category = data['category']
+    question = data['question']
+    answer = data['answer'] 
+    formatted_doc = f"### Category: {category}\nQuestion: {question}\nAnswer:{answer}\n"
+    return formatted_doc
 
 def extract_answer(response):
     # funcion to extract an answer from response

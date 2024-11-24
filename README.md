@@ -1,5 +1,9 @@
 # 24-LLM-Project
 24-Fall-NLP LLM project
+
+### Additional Notice
+MMLUpro의 경우 Law, Psychology, Business, Philosophy, History 다섯 개의 domain만 사용
+
 #### Configurations 
 `config.yaml` 에서 data_root: 데이터 폴더의 경로, *_faiss_path는 FAISS 데이터베이스를 저장할 로컬 위치
 top_k는 상위 몇개까지 retriever가 뽑을지를 나타내는 하이퍼파라미터. 그외 chunk_size, chunk_overlap

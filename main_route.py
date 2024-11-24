@@ -3,6 +3,7 @@ import warnings
 from argparse import ArgumentParser
 from datasets import load_dataset
 from langchain_engine.langchain_engine import *
+from prompts import * 
 warnings.filterwarnings('ignore') 
 
 def main(
@@ -43,11 +44,13 @@ def main(
     }
 
     # Make embeddings, db, and rertriever 
-    splits = ret_dict.get(ewha_ret1)[0](data_root, chunk_size, chunk_overlap) 
+    if not os.path.exists(ret_dict.get(ewha_ret1)[2]):
+        splits = ret_dict.get(ewha_ret1)[0](data_root, chunk_size, chunk_overlap) 
     ewha_retriever1  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     
     if ewha_ret2 is not None:
-        splits = ret_dict.get(ewha_ret2)[0](data_root, chunk_size, chunk_overlap) 
+        if not os.path.exists(ret_dict.get(ewha_ret2)[2]):
+            splits = ret_dict.get(ewha_ret2)[0](data_root, chunk_size, chunk_overlap) 
         ewha_retriever2  = ret_dict.get(ewha_ret2)[1](splits, save_dir=ret_dict.get(ewha_ret2)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         ewha_retriever_ensemble = get_ensemble_retriever([ewha_retriever1, ewha_retriever2], [0.5, 0.5])
 
@@ -59,66 +62,8 @@ def main(
         arc_retriever_bm25 = get_bm25(arc_data, save_dir="./db/arc/arc_bm25", top_k=top_k) 
         arc_retriever_ensemble = get_ensemble_retriever([arc_retriever_faiss, arc_retriever_bm25], [0.5, 0.5]) 
     
-    # Make prompt template please write "The information is not present in the context." and 
-    ewha_prompt = """
-                Please provide most correct answer from the following context.
-                If the answer or related information is not present in the context, 
-                solve the question without depending on the given context. 
-                Please summarize the information you referred to along with the reasons why.
-                You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
-                ---
-
-                ### Example of expected format: 
-                [ANSWER]: (A) convolutional networks
-    
-                ---
-                ###Question: 
-                {question}
-                ---
-                ###Context: 
-                {context}
-            """
-    arc_prompt = """
-                Please provide most correct answer from the following context.
-                If the answer or related information is not present in the context, 
-                solve the question without depending on the given context. 
-                Please summarize the information you referred to along with the reasons why.
-                You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
-                ---
-
-                ### Example of expected format: 
-                [ANSWER]: (A) convolutional networks
-    
-                ---
-                ###Question: 
-                {question}
-                ---
-                ###Context: 
-                {context}
-            """
-    base_prompt = """
-                Please provide most correct answer from the following context.
-                If the answer or related information is not present in the context, 
-                solve the question without depending on the given context. 
-                Please summarize the information you referred to along with the reasons why.
-                You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
-                ---
-
-                ### Example of expected format: 
-                [ANSWER]: (A) convolutional networks
-    
-                ---
-                ###Question: 
-                {question}
-                ---
-                ###Context: 
-                {context}
-            """
-    templates = [ewha_prompt, arc_prompt, base_prompt]
-
+    # Make prompt template  
+    templates = [EWHA_PROMPT, ARC_PROMPT, BASE_PROMPT]
 
     # Make llm
     llm = get_llm(temperature=0)

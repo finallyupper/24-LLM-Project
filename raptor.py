@@ -7,8 +7,11 @@ from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_engine.langchain_engine import * 
 from utils import * 
 import warnings
+from datasets import load_dataset
+from prompts import *
 warnings.filterwarnings('ignore') 
 RANDOM_SEED = 42  
+# https://github.com/teddylee777/langchain-kr/blob/main/12-RAG/09-RAPTOR-Long-Context-RAG.ipynb 
 
 def global_cluster_embeddings(embeddings, dim, n_neighbors=None, metric="cosine"):
     """Globally reduce dimension using UMAP"""
@@ -117,7 +120,18 @@ def fmt_txt(df: pd.DataFrame) -> str: # CHECK if it is our best ...
         unique_txt
     )  
 
-def embed_cluster_summarize_texts(texts, level):
+def choose_template(type):
+    if type =="law":
+        template = RAPTOR_LAW_TAMPLATE 
+    elif type == "psychology":
+        template = RAPTOR_PSYCHOLOGY_TEMPLATE
+    elif type == "business":
+        template = RAPTOR_BUSINESS_TEMPLATE
+    elif type == "philosophy":
+        template = RAPTOR_PHILOSOPHY_TEMPLATE 
+    return template 
+
+def embed_cluster_summarize_texts(texts, level, type):
     df_clusters = embed_clusters_texts(texts) 
     expanded_list = [] 
     
@@ -131,16 +145,8 @@ def embed_cluster_summarize_texts(texts, level):
     all_clusters = expanded_df["cluster"].unique() 
     print(f"--Generated {len(all_clusters)} clusters--") 
     
-    template = """
-    여기 이화여자대학교 학칙 문서가 있습니다.
+    template = choose_template(type=type)  
 
-    이 문서는 학칙의 핵심 내용을 포함하며, 총칙, 부설기관, 학사 운영, 학생 활동 및 행정 절차 등 주요 항목을 다룹니다.
-
-    제공된 문서의 자세한 요약을 제공하십시오.
-    ----
-    #### 문서:
-    {doc}
-    """
     llm = get_llm(temperature=0)
     chain = get_chain(llm, template) 
     summaries = [] 
@@ -160,11 +166,11 @@ def embed_cluster_summarize_texts(texts, level):
 
     return df_clusters, df_summary
 
-def recursive_embed_cluster_summarize(texts, level, n_levels):
+def recursive_embed_cluster_summarize(texts, level, n_levels, type):
     """Recursively embed/clustering/summarize texts until it single cluster remains or given level"""
     results = {} 
 
-    df_clusters, df_summary = embed_cluster_summarize_texts(texts, level)
+    df_clusters, df_summary = embed_cluster_summarize_texts(texts, level, type)
 
     results[level] = (df_clusters, df_summary) 
 
@@ -172,44 +178,54 @@ def recursive_embed_cluster_summarize(texts, level, n_levels):
     if level < n_levels and unique_clusters > 1:
         new_texts = df_summary["summaries"].tolist()
         next_level_results = recursive_embed_cluster_summarize(
-            new_texts, level + 1, n_levels
+            new_texts, level + 1, n_levels, type
         )
         results.update(next_level_results)
 
     return results
 
-
-def save_raptor():
+def save_raptor(type, save_path, n_levels=3):
     load_env()
-    config = load_yaml("config.yaml") 
-    raptor_faiss_path = config['raptor_faiss_path'] 
+    splits = load_customed_datasets(type = type)
 
-    splits = load_ewha("./data", json_name="ewha_chunk_doc_fix.json") 
-
-    chunk_size_tok = 1000; chunk_overlap=100
+    chunk_size_tok = 1000; chunk_overlap=0
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         chunk_size=chunk_size_tok, 
         chunk_overlap=chunk_overlap
     )
+    print("[INFO] Splitting documents ...")
     texts_split = text_splitter.split_documents(splits)
     docs_texts = [d.page_content for d in texts_split] 
 
     # Make Tree 
+    print("[INFO] Making tree ...")
     leaf_texts = docs_texts # Set document text to leaf text 
     results = recursive_embed_cluster_summarize(
-        leaf_texts, level=1, n_levels=3
+        leaf_texts, level=1, n_levels=n_levels, type=type
     ) 
 
     all_texts = leaf_texts.copy() 
-    for level in sorted(results.keys()):
+    print("[INFO] Adding summarization ...")
+    for level in tqdm(sorted(results.keys())):
         # Extract summarization from the level
         summaries = results[level][1]["summaries"].tolist()
         # Add summarization to all_texts
         all_texts.extend(summaries)
 
-    if not os.path.exists(raptor_faiss_path):
+    if not os.path.exists(save_path):
         vectorstore = FAISS.from_texts(texts=all_texts, embedding=get_embedding() )
-        vectorstore.save_local(folder_path=raptor_faiss_path)
+        vectorstore.save_local(folder_path=save_path)
+        print(f"[INFO] Saved Vector DB into {save_path}")
 
 if __name__ == "__main__":
-    save_raptor() 
+    # law, psychology, business, philosophy
+    # PROCESSING ...
+    # save_raptor(type="law", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/law", n_levels=4) 
+    
+    # TOO HUGE ... (-> 20k random sampling)
+    save_raptor(type="philosophy", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/philosophy", n_levels=3)
+    # save_raptor(type="psychology", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/psychology", n_levels=7) 
+
+    # DONE 
+    # save_raptor(type="business", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/business", n_levels=4)
+    
