@@ -88,36 +88,61 @@ def extract_again(response):
 
 
 def eval(questions, answers, responses, debug=False):
-    cnt = 0
-    wrong_questions = []
-    for question, answer, response in zip(questions, answers, responses):
+    cnt_total = cnt_ewha = cnt_mmlu = 0
+    total_questions = len(answers)
+    wrong_questions_total, wrong_questions_ewha, wrong_questions_mmlu = [], [], []
+
+    ewha_indices = list(range(35))
+    mmlu_indices = list(range(35, total_questions))
+
+    for i, (question, answer, response) in enumerate(zip(questions, answers, responses)):
         print("-"*10)
-        print(f"{question}\n")
+        print(f"Question {i + 1}: {question}\n")
         generated_answer = extract_answer(response)
         if debug:
-            if len(response) > 601:
-                response = response[:600]
             print(f"[Total Response]{response}")
             if generated_answer:
                 print(f"\ngenerated answer: {generated_answer}, answer: {answer}")
             else:
                 print("extraction fail")
 
-        if generated_answer == None:
-            continue
-        if generated_answer in answer:
-            cnt += 1
-        else:
-            wrong_question = re.findall(r"QUESTION(\d+)", question)
-            wrong_questions.append(wrong_question)
-    accuracy = (cnt/len(answers))*100
-    print(f"Accuracy: {accuracy}%")
-    print("All Done") 
-    print(f"Wrong Answers in these questions:", end=" ")
-    for q in wrong_questions:
-        print(f"{q[0]},", end=" ") 
+        is_correct = generated_answer in answer
 
-    return accuracy
+        # Overall query
+        if is_correct:
+            cnt_total += 1
+        else:
+            wrong_questions_total.append(i + 1)
+
+        # Ewha query
+        if i in ewha_indices:
+            if is_correct:
+                cnt_ewha += 1
+            else:
+                wrong_questions_ewha.append(i + 1)
+        
+        # MMLU-pro query
+        elif i in mmlu_indices:
+            if is_correct:
+                cnt_mmlu += 1
+            else:
+                wrong_questions_mmlu.append(i + 1)
+    
+    accuracy_total = (cnt_total / total_questions) * 100
+    accuracy_ewha = (cnt_ewha / (cnt_ewha + len(wrong_questions_ewha))) * 100 if cnt_ewha + len(wrong_questions_ewha) > 0 else 0
+    accuracy_mmlu = (cnt_mmlu / (cnt_mmlu + len(wrong_questions_mmlu))) * 100 if cnt_mmlu + len(wrong_questions_mmlu) > 0 else 0
+
+    print(f"Overall Accuracy: {accuracy_total:.2f}%")
+    print(f"Ewha Accuracy: {accuracy_ewha:.2f}%")
+    print(f"MMLU-pro Accuracy: {accuracy_mmlu:.2f}%")
+    print("All Done")
+
+    print(f"Wrong Answers (Overall): {wrong_questions_total}")
+    print(f"Wrong Answers (Ewha): {wrong_questions_ewha}")
+    print(f"Wrong Answers (MMLU-pro): {wrong_questions_mmlu}")
+
+    return accuracy_total, accuracy_ewha, accuracy_mmlu
+    
 
 def document_to_dict(doc):
     return {
