@@ -1,15 +1,20 @@
+import sys
 from utils import * 
 import warnings
 from argparse import ArgumentParser
 from datasets import load_dataset
 from langchain_engine.langchain_engine import *
-from prompts import * 
+from prompts import *
 warnings.filterwarnings('ignore') 
 
+"""
+Example command line:
+python main.py -e1 pc_chroma -e2 rap_faiss
+"""
 def main(
     ewha_ret1: str,
     ewha_ret2: str,
-    arc_ret: bool,
+    mmlu_ret: bool,
 ):
     # Load configs
     load_env(".env")
@@ -17,10 +22,13 @@ def main(
     data_root = config['data_root']
     chunk_size = config['chunk_size'] 
     chunk_overlap = config['chunk_overlap']
+    top_k = config['top_k']
+    ewha_thres = config['ewha_thres'] # Modified(Su): similarity_score_threshold
+    mmlu_thres = config['mmlu_thres'] # Modified(Su): similarity_score_threshold
+    default_thres = config['default_thres'] # Modified(Su): similarity_score_threshold
+
     ewha_faiss_path = config['ewha_faiss_path']
     ewha_bm25_path = config['ewha_bm25_path'] 
-    arc_faiss_path = config['arc_faiss_path']
-    arc_bm25_path = config['arc_bm25_path']
     summ_chroma_path = config['summ_chroma_path']
     summ_faiss_path = config['summ_faiss_path']
     pc_chroma_path = config['pc_chroma_cos_path']
@@ -28,10 +36,15 @@ def main(
     pc_faiss_path = config['pc_faiss_path']
     raptor_faiss_path = config['raptor_faiss_path']
     pc_chroma_cos_path = config['pc_chroma_cos_path']
-    top_k = config['top_k']
 
+    business_faiss_path = config['business_faiss_path']
+    law_faiss_path = config['law_faiss_path']
+    psychology_faiss_path = config['psychology_faiss_path']
+    philosophy_faiss_path = config['philosophy_faiss_path']
+
+    
     # Load and Split documents
-    splits = [];arc_data = []
+    splits = [];
     ret_dict = {
         "faiss": [split_docs, get_faiss, ewha_faiss_path],
         "bm25": [split_docs, get_bm25, ewha_bm25_path],
@@ -41,69 +54,67 @@ def main(
         "summ_chroma": [load_ewha, get_summ_chroma, summ_chroma_path],
         "rap_faiss": [split_docs, get_faiss, raptor_faiss_path],
         "pc_chroma_cos": [split_docs, get_pc_chroma_cos, pc_chroma_cos_path],
+        # "biz_faiss": [load_custom_dataset, get_faiss, business_faiss_path],
+        # "law_faiss": [load_custom_dataset, get_faiss, law_faiss_path],
+        # "psy_faiss": [load_custom_dataset, get_faiss, psychology_faiss_path],
+        # "phil_faiss": [load_custom_dataset,get_faiss, philosophy_faiss_path]
     }
 
     # Make embeddings, db, and rertriever 
-    if not os.path.exists(ret_dict.get(ewha_ret1)[2]):
+    if not os.path.exists(ret_dict.get(ewha_ret1)[2]): #Modified(Yoojin): only load docs if it is not in DB.
+        print(f"[INFO] {ret_dict.get(ewha_ret1)[2]} not exists")
         splits = ret_dict.get(ewha_ret1)[0](data_root, chunk_size, chunk_overlap) 
-    ewha_retriever1  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    ewha_retriever  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap, thres=ewha_thres)
     
     if ewha_ret2 is not None:
-        if not os.path.exists(ret_dict.get(ewha_ret2)[2]):
+        if not os.path.exists(ret_dict.get(ewha_ret2)[2]):  #Modified(Yoojin): only load docs if it is not in DB.
+            print(f"[INFO] {ret_dict.get(ewha_ret2)[2]} not exists")
             splits = ret_dict.get(ewha_ret2)[0](data_root, chunk_size, chunk_overlap) 
-        ewha_retriever2  = ret_dict.get(ewha_ret2)[1](splits, save_dir=ret_dict.get(ewha_ret2)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-        ewha_retriever_ensemble = get_ensemble_retriever([ewha_retriever1, ewha_retriever2], [0.5, 0.5])
+        ewha_retriever2  = ret_dict.get(ewha_ret2)[1](splits, save_dir=ret_dict.get(ewha_ret2)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap, thres=ewha_thres)
+        ewha_retriever = get_ensemble_retriever([ewha_retriever, ewha_retriever2], [0.5, 0.5])
 
-    if arc_ret:
-        if not os.path.exists(arc_faiss_path):
-            arc_data = load_arc() 
-        arc_retriever_faiss = get_arc_faiss(arc_data, save_dir="./db/arc/arc_faiss",top_k=top_k) 
-        arc_data = load_arc() 
-        arc_retriever_bm25 = get_bm25(arc_data, save_dir="./db/arc/arc_bm25", top_k=top_k) 
-        arc_retriever_ensemble = get_ensemble_retriever([arc_retriever_faiss, arc_retriever_bm25], [0.5, 0.5]) 
-    
+    if mmlu_ret: # Use mmlu related database
+        mmlu_ret_paths = [business_faiss_path, law_faiss_path, psychology_faiss_path, philosophy_faiss_path]
+        mmlu_rets = []
+        mmlu_data_splits = []
+        for faiss_path in mmlu_ret_paths:
+            type_name = str(os.path.basename(faiss_path)).split("_")[0] # ex. business
+            if not os.path.exists(faiss_path):          
+                mmlu_data_splits = load_custom_dataset(type_name) 
+            ret = get_faiss(mmlu_data_splits, faiss_path, chunk_size=chunk_size, chunk_overlap=chunk_overlap, top_k=top_k, thres=mmlu_thres) 
+            mmlu_rets.append(ret) 
+        assert len(mmlu_rets) == 4, "The number of retrievers should be 4."
+        #mmlu_retriever_ensemble = get_ensemble_retriever(mmlu_rets, [0.25, 0.25, 0.25, 0.25]) 
+
+        # ewha for default
+        default_retriever  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap, thres=default_thres)
+
     # Make prompt template  
-    templates = [EWHA_PROMPT, ARC_PROMPT, BASE_PROMPT]
+    templates = [EWHA_PROMPT, MMLU_PROMPT, BASE_PROMPT]
 
     # Make llm
     llm = get_llm(temperature=0)
 
-    # 8. Get langchain using template
-    # if ewha_ret2 is not None:
-    #     chain = get_qa_chain(llm, ewha_retriever_ensemble, prompt_template=prompt)
-    # else: chain = get_qa_chain(llm, ewha_retriever1, prompt_template=prompt)
-    # if arc_ret:
-    #     arc_chain = get_qa_chain(llm, arc_retriever_ensemble, prompt_template=prompt) 
-    chain = get_multiret_qa_chain(llm, [ewha_retriever_ensemble, arc_retriever_ensemble], templates)
-
+    # rounting
+    chain = get_multiret_qa_chain(llm, [ewha_retriever]+mmlu_rets+[default_retriever], templates)
+                 
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
-    questions, answers = read_data(data_root, filename="test35_ewha.csv") 
+    questions, answers = read_data(data_root, filename="test85_final.csv") 
+    responses = get_responses(chain=chain, prompts=questions, wiki=True, wiki_prompt=BASE_PROMPT)
+    accuracy_total, accuracy_ewha, accuracy_mmlu = eval(questions, answers, responses, debug=True) 
 
-    responses = get_responses(chain=chain, prompts=questions)
-    acc1 = eval(questions, answers, responses, debug=True) 
-
-    # If You want to compare two chains, use the below code!
-    """ 
-    ewha_chain = get_qa_chain(llm, arc_retriever_faiss, prompt_template=prompt) 
-    print("[INFO] Load test dataset...") 
-    questions, answers = read_data(data_root, filename="final_30_samples.csv") 
-    responses = get_responses(chain=ewha_chain, prompts=questions)
-    acc2 = eval(questions, answers, responses) 
-    print(f">> Accuracy Comparison: {acc1} | {acc2}")  
-    """
-    # If you want to test you agent, use the code below
-    # WARNINGS: It eats lots of money $$!!
-    """ 
-    responses = get_agent_responses(agent=agent, prompts=questions) 
-    acc1 = eval(questions, answers, responses, debug=False) 
-    """
+    print(f"{ewha_thres=}")
+    print(f"{mmlu_thres=}")
+    print(sys.argv)
 
 if __name__=="__main__":
     ewha_retrievers_type = ["faiss", "bm25", "rap_faiss", "pc_faiss", "pc_chroma", "summ_faiss", "summ_chroma", "pc_chroma_cos"]
+    mmlu_retrievers_type = ["all"] #, "biz_faiss", "law_faiss", "psy_faiss", "phil_faiss"]
 
     PARSER = ArgumentParser()
     PARSER.add_argument("-e1", '--ewha_ret1', choices=ewha_retrievers_type, default=None)
     PARSER.add_argument("-e2", '--ewha_ret2', choices=ewha_retrievers_type, default=None)
-    PARSER.add_argument('--arc_ret', action='store_true')
+    PARSER.add_argument("-m", "--mmlu_ret", choices=mmlu_retrievers_type, default=None)
+
     main(**vars(PARSER.parse_args()))

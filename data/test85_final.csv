@@ -213,7 +213,6 @@ prompts,answers
 "QUESTION35) 다음 설명을 보고 이화가 석사 학위과정 교과목을 수강할 수 있을지 판단하시오. “나는 저번학기에 4.2를 이번학기에는 4.0을 받았어. 작년에는 모두 4.3점을 받았어. 나는 휴학을 한번도 안했어. 앞으로 휴학을 안하면 졸업까지 2년만 더 다니면 끝이라니 너무나 아쉽다.”
 (A) 석사학위과정 교과목을 수강할 수 있다.
 (B) 석사학위과정 교과목을 수강할 수 없다.",(B)
-prompt,answer
 "QUESTION498) What is a normative perspective?
 (A) The way things were.
 (B) The way things might have been.
