@@ -266,7 +266,6 @@ def get_responses(chain, prompts):
     responses = []
     for prompt in tqdm(prompts, desc="Processing questions"):
         response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
-        print(response)
         try:
             responses.append(response.content)
         except:
@@ -415,7 +414,11 @@ def load_customed_datasets(type):
         print("[INFO] Load ymoslem/Law-StackExchange dataset...")
         ds_law = load_dataset("ymoslem/Law-StackExchange")
         train_data_law = ds_law['train'] 
-        for entry in tqdm(train_data_law):
+        sample_size = 2000 
+        train_data_list = list(train_data_law)
+        sampled_data_law = random.sample(train_data_list, sample_size) 
+
+        for entry in tqdm(sampled_data_law):
             if len(entry['answers']) == 0:
                 continue 
             doc_content = format_law_docs(entry) 
@@ -430,7 +433,7 @@ def load_customed_datasets(type):
         print("[INFO] Load BoltMonkey/psychology-question-answer dataset...")
         ds_psy = load_dataset("BoltMonkey/psychology-question-answer")
         train_data_psy = ds_psy['train'] 
-        sample_size = 20000 # Only use 20k because of memory issue 
+        sample_size = 2000 # Only use 2.0k because of memory issue 
 
         train_data_list = list(train_data_psy)
         sampled_data_psy = random.sample(train_data_list, sample_size)
@@ -459,7 +462,7 @@ def load_customed_datasets(type):
         print("[INFO] Load sayhan/strix-philosophy-qa dataset ...")
         ds_phi = load_dataset("sayhan/strix-philosophy-qa") 
         train_data_phi = ds_phi['train'] 
-        sample_size = 20000 # Only use 20k because of memory issue 
+        sample_size = 2000 # Only use 1.8k because of memory issue --> 2.0k 4004tokens error(> 4000tokens limitation)
         train_data_list = list(train_data_phi)
         sampled_data_phi = random.sample(train_data_list, sample_size)
 

@@ -21,6 +21,7 @@ def read_data(data_path, filename="test_samples.csv"):
     prompts = data['prompts']
     answers = data['answers']
     # returns two lists: prompts and answers
+    print(len(prompts))
     return prompts, answers 
 
 

@@ -9,9 +9,10 @@ from utils import *
 import warnings
 from datasets import load_dataset
 from prompts import *
+from tqdm import tqdm 
 warnings.filterwarnings('ignore') 
 RANDOM_SEED = 42  
-# https://github.com/teddylee777/langchain-kr/blob/main/12-RAG/09-RAPTOR-Long-Context-RAG.ipynb 
+# Reference: https://github.com/teddylee777/langchain-kr/blob/main/12-RAG/09-RAPTOR-Long-Context-RAG.ipynb 
 
 def global_cluster_embeddings(embeddings, dim, n_neighbors=None, metric="cosine"):
     """Globally reduce dimension using UMAP"""
@@ -121,21 +122,19 @@ def fmt_txt(df: pd.DataFrame) -> str: # CHECK if it is our best ...
     )  
 
 def choose_template(type):
-    if type =="law":
-        template = RAPTOR_LAW_TAMPLATE 
-    elif type == "psychology":
-        template = RAPTOR_PSYCHOLOGY_TEMPLATE
-    elif type == "business":
-        template = RAPTOR_BUSINESS_TEMPLATE
-    elif type == "philosophy":
-        template = RAPTOR_PHILOSOPHY_TEMPLATE 
-    return template 
+    templates = {
+        "law": RAPTOR_LAW_TEMPLATE,
+        "psychology": RAPTOR_PSYCHOLOGY_TEMPLATE,
+        "business": RAPTOR_BUSINESS_TEMPLATE,
+        "philosophy": RAPTOR_PHILOSOPHY_TEMPLATE,
+    }
+    return templates.get(type)
 
 def embed_cluster_summarize_texts(texts, level, type):
     df_clusters = embed_clusters_texts(texts) 
     expanded_list = [] 
     
-    for idx, row in df_clusters.iterrows():
+    for idx, row in tqdm(df_clusters.iterrows()):
         for cluster in row["cluster"]:
             expanded_list.append({"text": row["text"], 
                                   "embd": row["embd"], 
@@ -188,7 +187,7 @@ def save_raptor(type, save_path, n_levels=3):
     load_env()
     splits = load_customed_datasets(type = type)
 
-    chunk_size_tok = 1000; chunk_overlap=0
+    chunk_size_tok = 500; chunk_overlap=50
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         chunk_size=chunk_size_tok, 
         chunk_overlap=chunk_overlap
@@ -212,20 +211,26 @@ def save_raptor(type, save_path, n_levels=3):
         # Add summarization to all_texts
         all_texts.extend(summaries)
 
+    output_dir = "./db/raptor/"
+    os.makedirs(output_dir, exist_ok=True) 
+    output_file = os.path.join(output_dir, "philosophy.txt")
+
+    # Debug
+    # if not os.path.exists(output_file):
+    #     with open(output_file, "w") as f:
+    #         f.write("\n".join(all_texts))
+            
     if not os.path.exists(save_path):
         vectorstore = FAISS.from_texts(texts=all_texts, embedding=get_embedding() )
         vectorstore.save_local(folder_path=save_path)
         print(f"[INFO] Saved Vector DB into {save_path}")
-
+    
 if __name__ == "__main__":
     # law, psychology, business, philosophy
-    # PROCESSING ...
-    # save_raptor(type="law", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/law", n_levels=4) 
+    # DONE
+    # save_raptor(type="psychology", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/psychology", n_levels=7)  # 1000 , 0
+    # save_raptor(type="philosophy", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/philosophy", n_levels=7) # 500, 50
+    # save_raptor(type="business", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/business", n_levels=4) # 1000 , 0
+    # save_raptor(type="law", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/law", n_levels=4)  # 1000 , 0
     
-    # TOO HUGE ... (-> 20k random sampling)
-    save_raptor(type="philosophy", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/philosophy", n_levels=3)
-    # save_raptor(type="psychology", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/psychology", n_levels=7) 
-
-    # DONE 
-    # save_raptor(type="business", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/business", n_levels=4)
     
