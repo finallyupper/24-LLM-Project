@@ -64,7 +64,7 @@ EWHA_PROMPT = """
                 {context}
             """
 
-ARC_PROMPT = """
+MMLU_PROMPT = """
                 Please provide most correct answer from the following context.
                 If the answer or related information is not present in the context, 
                 solve the question without depending on the given context. 
@@ -96,7 +96,7 @@ RAPTOR_EWHA_TEMPLATE = """
     {doc}
     """
 
-RAPTOR_LAW_TAMPLATE = """
+RAPTOR_LAW_TEMPLATE = """
     Here is a collection of legal questions and answers from the StackExchange Law site.
 
     This contents contains various legal topics, including contract law, criminal law, intellectual property, and other domains of legal practice.
@@ -143,8 +143,7 @@ RAPTOR_BUSINESS_TEMPLATE = """
 RAPTOR_PHILOSOPHY_TEMPLATE = """
     Here is a collection of question-and-answer pairs about philosophy.
     Category is also mentioned for each question and answer pair.
-
-    Please provide a clear and concise summary of the answer provided to the question.
+    Please summarize up to 2 sentences that is concise but contains key points of the contents.
     ----
     #### Doc:
     {doc}
