@@ -122,7 +122,12 @@ def eval(questions, answers, responses, debug=False):
             else:
                 print("extraction fail")
 
-        is_correct = generated_answer in answer
+        # extraction fail
+        if generated_answer is None:
+            print(f"[WARNING] Failed to extract answer for question {i + 1}.")
+            is_correct = False  # regard as wrong answer
+        else:
+            is_correct = generated_answer in answer
 
         # Overall query
         if is_correct:
