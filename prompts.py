@@ -1,21 +1,21 @@
 BASE_PROMPT = """
-                Please provide most correct answer from the following context.
-                If the answer or related information is not present in the context, 
-                solve the question without depending on the given context. 
-                Please summarize the information you referred to along with the reasons why.
-                You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
-                ---
+            Please provide most correct answer from the following context.
+            If the answer or related information is not present in the context, 
+            solve the question without depending on the given context. 
+            Please summarize the information you referred to along with the reasons why.
+            You should give clear answer. Also, You are smart and very good at mathematics.
+                NOTE) You MUST answer like following format at the end.
+            ---
 
-                ### Example of expected format: 
-                [ANSWER]: (A) convolutional networks
-    
-                ---
-                ###Question: 
-                {question}
-                ---
-                ###Context: 
-                {context}
+            ### Example of expected format: 
+            [ANSWER]: (A) convolutional networks
+
+            ---
+            ###Question: 
+            {question}
+            ---
+            ###Context: 
+            {context}
             """
 
 
@@ -42,47 +42,48 @@ MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     << INPUT >>
     {{input}}
 
-    << OUTPUT (remember to include the ```json)>>"""
+    << OUTPUT (remember to include the ```json)>>
+    """
 
 EWHA_PROMPT = """
-                Please provide most correct answer from the following context.
-                If the answer or related information is not present in the context, 
-                solve the question without depending on the given context. 
-                Please summarize the information you referred to along with the reasons why.
-                You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
-                ---
+    Please provide most correct answer from the following context.
+    If the answer or related information is not present in the context, 
+    solve the question without depending on the given context. 
+    Please summarize the information you referred to along with the reasons why.
+    You should give clear answer. Also, You are smart and very good at mathematics.
+        NOTE) You MUST answer like following format at the end.
+    ---
 
-                ### Example of expected format: 
-                [ANSWER]: (A) convolutional networks
-    
-                ---
-                ###Question: 
-                {question}
-                ---
-                ###Context: 
-                {context}
-            """
+    ### Example of expected format: 
+    [ANSWER]: (A) convolutional networks
+
+    ---
+    ###Question: 
+    {question}
+    ---
+    ###Context: 
+    {context}
+"""
 
 MMLU_PROMPT = """
-                Please provide most correct answer from the following context.
-                If the answer or related information is not present in the context, 
-                solve the question without depending on the given context. 
-                Please summarize the information you referred to along with the reasons why.
-                You should give clear answer. Also, You are smart and very good at mathematics.
-                 NOTE) You MUST answer like following format at the end.
-                ---
+    Please provide most correct answer from the following context.
+    If the answer or related information is not present in the context, 
+    solve the question without depending on the given context. 
+    Please summarize the information you referred to along with the reasons why.
+    You should give clear answer. Also, You are smart and very good at mathematics.
+        NOTE) You MUST answer like following format at the end.
+    ---
 
-                ### Example of expected format: 
-                [ANSWER]: (A) convolutional networks
-    
-                ---
-                ###Question: 
-                {question}
-                ---
-                ###Context: 
-                {context}
-            """
+    ### Example of expected format: 
+    [ANSWER]: (A) convolutional networks
+
+    ---
+    ###Question: 
+    {question}
+    ---
+    ###Context: 
+    {context}
+    """
 
 
 RAPTOR_EWHA_TEMPLATE = """

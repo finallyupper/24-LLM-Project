@@ -103,7 +103,6 @@ def extract_again(response):
     if match: return match.group(0)
     else: return None
 
-
 def eval(questions, answers, responses, debug=False):
     cnt_total = cnt_ewha = cnt_mmlu = 0
     total_questions = len(answers)
@@ -166,3 +165,6 @@ def document_to_dict(doc):
         "metadata": doc.metadata,
         "page_content": doc.page_content,
     }
+
+
+

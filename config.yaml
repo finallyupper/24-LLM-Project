@@ -1,24 +1,27 @@
 # config.yaml
-data_root: /home/yoojinoh/Others/NLP/24-LLM-Project/data
-chunk_size: 300
+data_root: /home/sml09181/SJ/nlp/24-LLM-Project/data
+chunk_size: 800
 chunk_overlap: 100
 top_k: 5
+default_thres: 0.1
 
 # For ewha questions
-ewha_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/ewha/ewha_faiss_fix
-ewha_bm25_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/ewha/bm25_fix
+ewha_thres: 0.00001
+ewha_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/ewha/ewha_faiss_fix
+ewha_bm25_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/ewha/bm25_fix
 
-summ_chroma_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/summ_chroma
-summ_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/summ_faiss
+summ_chroma_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/summ_chroma
+summ_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/summ_faiss
 
-pc_chroma_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/pc_chroma_new
-pc_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/pc_faiss
-pc_chroma_cos_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/pc_chroma_cos
+pc_chroma_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_chroma_new
+pc_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_faiss
+pc_chroma_cos_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_chroma_cos
 
-raptor_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/RAPTOR_faiss_fix_overlap 
+raptor_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/raptor/RAPTOR_faiss_fix_overlap 
 
 # For mmlu questions
-business_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/business
-law_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/law
-psychology_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/psychology
-philosophy_faiss_path: /home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/philosophy
+mmlu_thres: 0.4
+business_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/raptor/business
+law_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/raptor/law
+psychology_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/raptor/psychology
+philosophy_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/raptor/philosophy

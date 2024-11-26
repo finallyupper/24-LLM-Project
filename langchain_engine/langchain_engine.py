@@ -14,8 +14,13 @@ from collections import Counter
 from sys import exit
 import random
 
+from typing import List
+from collections import defaultdict
+from langchain.retrievers import MultiVectorRetriever
+from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.stores import InMemoryByteStore
+from langchain_community.retrievers.wikipedia import WikipediaRetriever
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.output_parsers.openai_functions import JsonKeyOutputFunctionsParser
@@ -134,6 +139,39 @@ def get_qa_chain(llm, retriever, prompt_template=None):
 
     return rag_chain 
 
+class newMultiVectorRetriever(MultiVectorRetriever):
+    def _get_relevant_documents(
+        self, query: str, *, run_manager: CallbackManagerForRetrieverRun
+    ) -> List[Document]:
+        """Get documents relevant to a query.
+        Args:
+            query: String to find relevant documents for
+            run_manager: The callbacks handler to use
+        Returns:
+            List of relevant documents
+        """
+        results = self.vectorstore.similarity_search_with_score(
+            query, **self.search_kwargs
+        )
+
+        # Map doc_ids to list of sub-documents, adding scores to metadata
+        id_to_doc = defaultdict(list)
+        for doc, score in results:
+            doc_id = doc.metadata.get("doc_id")
+            if doc_id:
+                doc.metadata["score"] = score
+                id_to_doc[doc_id].append(doc)
+
+        # Fetch documents corresponding to doc_ids, retaining sub_docs in metadata
+        docs = []
+        for _id, sub_docs in id_to_doc.items():
+            docstore_docs = self.docstore.mget([_id])
+            if docstore_docs:
+                if doc := docstore_docs[0]:
+                    doc.metadata["sub_docs"] = sub_docs
+                    docs.append(doc)
+        return docs
+
 class newMultiRetQAChain(MultiRetrievalQAChain):
     """A multi-route chain that uses an LLM router chain to choose amongst retrieval
     qa chains."""
@@ -220,16 +258,36 @@ class newMultiRetQAChain(MultiRetrievalQAChain):
             **kwargs,
         )
 
+def get_wiki(top_k=4):
+    retriever = WikipediaRetriever(
+        top_k_results=top_k,
+    )
+    return retriever
 
-# https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/router/multi_retrieval_qa.py#L22
-# https://github.com/langchain-ai/langchain/discussions/22905
+def get_wiki_chain(prompt_template=None):
+    llm = get_llm(temperature=0)
+    retriever = get_wiki()
+
+    if prompt_template is not None:
+         prompt_template = PromptTemplate.from_template(prompt_template)
+    else:
+        prompt_template = hub.pull("rlm/rag-prompt") #QA prompt  https://smith.langchain.com/hub/rlm/rag-prompt?organizationId=5b2073af-2123-4ed3-b218-fa406e467d84 
+    
+    chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt_template
+        | llm
+    )
+    return chain 
+
 def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
     """A multi-route chain that uses an LLM router chain to choose amongst retrieval
     qa chains."""
 
     if prompt_template is not None:
-         prompt_template1 = PromptTemplate.from_template(prompt_template[0]) # template=prompt_template[0], input_variables=["context", "question"]
-         prompt_template2 = PromptTemplate.from_template(prompt_template[1])
+         prompt_template1 = PromptTemplate.from_template(prompt_template[0]) # EWHA # template=prompt_template[0], input_variables=["context", "question"]
+         prompt_template2 = PromptTemplate.from_template(prompt_template[1]) # COMMON FOR MMLU
+         prompt_template3 = PromptTemplate.from_template(prompt_template[2]) # BASE
     else:
         prompt_template1 = hub.pull("rlm/rag-prompt") #QA prompt  https://smith.langchain.com/hub/rlm/rag-prompt?organizationId=5b2073af-2123-4ed3-b218-fa406e467d84 
         prompt_template2 = prompt_template1
@@ -237,19 +295,43 @@ def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
     retriever_infos = [
         {
             "name": "ewha_retriever",
-            "description": "이화여자대학교 학칙 문서를 위한 ensemble retriever:  이 문서는 학칙의 핵심 내용을 포함하며, 총칙, 부설기관, 학사 운영, 학생 활동 및 행정 절차 등 주요 항목을 다룹니다.",
+            "description": "for 이화여자대학교 학칙(Rules of Ewha Womans University); 학교(대학)의 학과, 교과 과정, 입학, 졸업, 상벌, 총칙, 부설기관, 학사 운영, 학점, 성적, 학생 활동 및 행정 절차 등에 관한 규칙. A university is an institution of higher (or tertiary) education (undergraduate and postgraduate programs) and research which awards academic degrees in several academic disciplines(majors).",
             "retriever": retrievers[0],
             "prompt": prompt_template1
         },
         {
-            "name": "arc_retriever",
-            "description": "ensemble retriever for mmlu-pro: This dataset contains questions and answers related to the following subjects: law, psychology, business, philosophy, history.",
+            "name": "law_retriever",
+            "description": "An expert for law; a set of rules that are created and are enforceable by social or governmental institutions to regulate behavior,[1] with its precise definition a matter of longstanding debate. law is a system of rules established by governing authorities to regulate behavior, maintain order, and resolve disputes. Not related with university rules",
             "retriever": retrievers[1],
             "prompt": prompt_template2
-        }
+        },
+        {
+            "name": "psychology_retriever",
+            "description": "An expert for psychology; the scientific study of mind and behavior. Its subject matter includes the behavior of humans and nonhumans, both conscious and unconscious phenomena, and mental processes such as thoughts, feelings, and motives. psychology is the scientific study of the mind and behavior, exploring how individuals think, feel, and act. Not related with university rules",
+            "retriever": retrievers[2],
+            "prompt": prompt_template2
+        },
+        {
+            "name": "philosophy_retriever",
+            "description": "An expert for philosophy; a systematic study of general and fundamental questions concerning topics like existence, reason, knowledge, value, mind, and language. It is a rational and critical inquiry that reflects on its own methods and assumptions. Philosophy is the study of fundamental questions regarding existence, knowledge, ethics, and reason. Not related with university rules",
+            "retriever": retrievers[3],
+            "prompt": prompt_template2
+        },
+        {
+            "name": "business_retriever",
+            "description": "An expert for business; the practice of making one's living or making money by producing or buying and selling products (such as goods and services). It is also 'any activity or enterprise entered into for profit.' business involves the creation, management, and operation of organizations that provide goods or services for profit. Not related with university rules",
+            "retriever": retrievers[4],
+            "prompt": prompt_template2
+        },
+        {
+            "name": "history_retriever",
+            "description": "An expert for history; the systematic study and documentation of the human past. history is the study of past events and societies, examining how they have shaped the present and future. Human history is the record of humankind from prehistory to the present. Not related with university rules",
+            "retriever": get_wiki(),
+            "prompt": prompt_template2
+        },
     ]
 
-    default_retriever = retrievers[0]
+    default_retriever = retrievers[-1]
     default_prompt = prompt_template1
     
     multi_retrieval_qa_chain = newMultiRetQAChain.from_retrievers(
@@ -261,15 +343,28 @@ def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
     )
     return multi_retrieval_qa_chain 
     
-def get_responses(chain, prompts):
+def get_responses(chain, prompts, wiki=False, wiki_prompt=None):
     # read samples.csv file
     responses = []
+    if wiki:
+        wiki_chain = get_wiki_chain(wiki_prompt)
     for prompt in tqdm(prompts, desc="Processing questions"):
-        response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
+        # No relevant docs were retrieved using the relevance score threshold 0.8
+        try:
+            response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
+            print("&&ROUTE: ", response)
+            if len(response['source_documents']) <1:
+                response = wiki_chain.invoke(prompt)
+                print("&&WIKI: ", response)
+        except ValueError: # ValueError: Received invalid destination chain name 'education_retriever'
+            response = wiki_chain.invoke(prompt)
+            print("&&WIKI: ", response)
         try:
             responses.append(response.content)
         except:
-            responses.append(response['result'])
+            responses.append(response['result']) # For routing
+        
+            
     """
     {
     'input': 'QUESTION1) 학칙에서 총장이 따로 정해야 하는 사항으로 옳은 것을 모두 고르시오.\n(A) 교양과목의 종류와 학점\n(B) 학과별 최소 전공 이수 학점\n(C) 수업시간표\n(D) 졸업논문의 시행 방법\n(E) A와 B만 올바름\n(F) A와 C만 올바름\n(G) A와 D만 올바름\n(H) A와 B와 C만 올바름\n(I) A와 B와 D만 올바름\n(J) A와 C와 D만 올바름', 
@@ -291,7 +386,7 @@ def get_faiss_vs(splits, embeddings):
     vectorstore = FAISS.from_documents(documents=splits, embedding=embeddings) 
     return vectorstore 
        
-def get_faiss(splits, save_dir="./db/ewha/ewha_faiss_fix", chunk_size=None, chunk_overlap=None, top_k=4): 
+def get_faiss(splits, save_dir="./db/ewha/ewha_faiss_fix", chunk_size=None, chunk_overlap=None, top_k=4, thres=0.8): 
     # returns retriever FAISS 
     embeddings = get_embedding()
     print("[INFO] Get retriever FAISS ...")
@@ -305,8 +400,10 @@ def get_faiss(splits, save_dir="./db/ewha/ewha_faiss_fix", chunk_size=None, chun
         vectorstore = FAISS.load_local(save_dir, embeddings, allow_dangerous_deserialization=True) 
         print(f"[INFO] Load DB from {save_dir}...") 
 
-    retriever = vectorstore.as_retriever(search_kwargs={"k": top_k}) # default = 4
-
+    retriever = vectorstore.as_retriever(
+                    search_type="similarity_score_threshold", 
+                    search_kwargs={"score_threshold": thres, 
+                    "k": top_k}) # Modified(Su)
     return retriever 
 
 def get_bm25(splits, save_dir="./db/bm25", chunk_size=None, chunk_overlap=None, top_k=4):
@@ -534,7 +631,7 @@ def get_chroma_vs(save_dir, embeddings, collection_name, cosine=False):
     return vectorstore
     
 def get_MultiVecRetriever(vectorstore, store, id_key, top_k):
-    retriever = MultiVectorRetriever(
+    retriever = newMultiVectorRetriever(
         vectorstore=vectorstore,
         byte_store=store,
         id_key=id_key,
@@ -580,7 +677,7 @@ def get_child(splits, doc_ids, child_text_splitter, id_key):
         sub_docs.extend(_sub_docs) #Modified(Yoojin): fixed indentation error
     return sub_docs, data
 
-def get_pc_chroma_cos(splits, save_dir="./db/pc_chroma_cos", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
+def get_pc_chroma_cos(splits, save_dir="./db/pc_chroma_cos", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False, thres=0.0001):
     """Parent Document Retreiver using Chroma"""
     embeddings = get_embedding() 
     #docstore_path = os.path.join(save_dir, "docstore_pc.pkl")
