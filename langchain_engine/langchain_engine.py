@@ -182,11 +182,10 @@ class newMultiRetQAChain(MultiRetrievalQAChain):
     """Map of name to candidate chains that inputs can be routed to."""
     default_chain: Chain
     """Default chain to use when router doesn't map input to one of the destinations."""
-
     @property
     def output_keys(self) -> List[str]:
         return ["result"]
-
+        
     @classmethod
     def from_retrievers(
         cls,
@@ -210,7 +209,6 @@ class newMultiRetQAChain(MultiRetrievalQAChain):
         router_template = MULTI_RETRIEVAL_ROUTER_TEMPLATE.format(
             destinations=destinations_str,
         )
-
         router_prompt = PromptTemplate(
             template=router_template,
             input_variables=["input"],
@@ -218,13 +216,20 @@ class newMultiRetQAChain(MultiRetrievalQAChain):
         )
         router_chain = LLMRouterChain.from_llm(llm, router_prompt)
         destination_chains = {}
-        for r_info in retriever_infos:
+        for i, r_info in enumerate(retriever_infos):
             prompt = r_info.get("prompt")
-            retriever = r_info["retriever"]
-            
-            chain = RetrievalQA.from_llm(llm, prompt=prompt, return_source_documents=True, retriever=retriever)
+            if i: # MMLU
+                chain = (
+                    {"query": RunnablePassthrough()}
+                    | prompt
+                    | llm
+                ) # chain.invoke({"question": prompt, "context": splits[0]})
+            else: # EWHA
+                retriever = r_info["retriever"]
+                chain = RetrievalQA.from_llm(llm, prompt=prompt, return_source_documents=True, retriever=retriever)
             name = r_info["name"]
             destination_chains[name] = chain
+
         if default_chain:
             _default_chain = default_chain
         elif default_retriever:
@@ -251,6 +256,7 @@ class newMultiRetQAChain(MultiRetrievalQAChain):
                 input_key="query",
                 output_key="result",
             )
+        ## ERROR HERE
         return cls(
             router_chain=router_chain,
             destination_chains=destination_chains,
@@ -295,44 +301,27 @@ def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
     retriever_infos = [
         {
             "name": "ewha_retriever",
-            "description": "for 이화여자대학교 학칙(Rules of Ewha Womans University); 학교(대학)의 학과, 교과 과정, 입학, 졸업, 상벌, 총칙, 부설기관, 학사 운영, 학점, 성적, 학생 활동 및 행정 절차 등에 관한 규칙. A university is an institution of higher (or tertiary) education (undergraduate and postgraduate programs) and research which awards academic degrees in several academic disciplines(majors).",
+            "description": "for 이화여자대학교 학칙(Rules of Ewha Womans University); \
+                학교(대학)의 학과, 교과 과정, 입학, 졸업, 상벌, 총칙, 부설기관, 학사 운영, 학점, 성적, 학생 활동 및 행정 절차 등에 관한 규칙. \
+                A university is an institution of higher (or tertiary) education (undergraduate and postgraduate programs) and research which awards academic degrees in several academic disciplines(majors).",
             "retriever": retrievers[0],
             "prompt": prompt_template1
         },
         {
-            "name": "law_retriever",
-            "description": "An expert for law; a set of rules that are created and are enforceable by social or governmental institutions to regulate behavior,[1] with its precise definition a matter of longstanding debate. law is a system of rules established by governing authorities to regulate behavior, maintain order, and resolve disputes. Not related with university rules",
-            "retriever": retrievers[1],
-            "prompt": prompt_template2
-        },
-        {
-            "name": "psychology_retriever",
-            "description": "An expert for psychology; the scientific study of mind and behavior. Its subject matter includes the behavior of humans and nonhumans, both conscious and unconscious phenomena, and mental processes such as thoughts, feelings, and motives. psychology is the scientific study of the mind and behavior, exploring how individuals think, feel, and act. Not related with university rules",
-            "retriever": retrievers[2],
-            "prompt": prompt_template2
-        },
-        {
-            "name": "philosophy_retriever",
-            "description": "An expert for philosophy; a systematic study of general and fundamental questions concerning topics like existence, reason, knowledge, value, mind, and language. It is a rational and critical inquiry that reflects on its own methods and assumptions. Philosophy is the study of fundamental questions regarding existence, knowledge, ethics, and reason. Not related with university rules",
-            "retriever": retrievers[3],
-            "prompt": prompt_template2
-        },
-        {
-            "name": "business_retriever",
-            "description": "An expert for business; the practice of making one's living or making money by producing or buying and selling products (such as goods and services). It is also 'any activity or enterprise entered into for profit.' business involves the creation, management, and operation of organizations that provide goods or services for profit. Not related with university rules",
-            "retriever": retrievers[4],
-            "prompt": prompt_template2
-        },
-        {
-            "name": "history_retriever",
-            "description": "An expert for history; the systematic study and documentation of the human past. history is the study of past events and societies, examining how they have shaped the present and future. Human history is the record of humankind from prehistory to the present. Not related with university rules",
-            "retriever": get_wiki(),
+            "name": "mmlu_retriever",
+            "description": "An expert for law, psychology, philosophy, business, history; \
+                law: a set of rules that are created and are enforceable by social or governmental institutions to regulate behavior, with its precise definition a matter of longstanding debate. \
+                psychology: a subject matter includes the behavior of humans and nonhumans, both conscious and unconscious phenomena, and mental processes such as thoughts, feelings, and motives. \
+                philosophy: a systematic study of general and fundamental questions concerning topics like existence, reason, knowledge, value, mind, and language. It is a rational and critical inquiry that reflects on its own methods and assumptions. \
+                business:  the practice of making one's living or making money by producing or buying and selling products (such as goods and services). It is also 'any activity or enterprise entered into for profit. \
+                history: the study of past events and societies, examining how they have shaped the present and future. Human history is the record of humankind from prehistory to the present. \
+                NOTE: Not related with university rules",
             "prompt": prompt_template2
         },
     ]
 
     default_retriever = retrievers[-1]
-    default_prompt = prompt_template1
+    default_prompt = prompt_template3 # Modified(Su)
     
     multi_retrieval_qa_chain = newMultiRetQAChain.from_retrievers(
         llm=llm,
@@ -353,7 +342,7 @@ def get_responses(chain, prompts, wiki=False, wiki_prompt=None):
         try:
             response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
             print("&&ROUTE: ", response)
-            if len(response['source_documents']) <1:
+            if response.get('source_documents') is not None and len(response['source_documents']) <1:
                 response = wiki_chain.invoke(prompt)
                 print("&&WIKI: ", response)
         except ValueError: # ValueError: Received invalid destination chain name 'education_retriever'

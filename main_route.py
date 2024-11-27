@@ -86,8 +86,8 @@ def main(
         assert len(mmlu_rets) == 4, "The number of retrievers should be 4."
         #mmlu_retriever_ensemble = get_ensemble_retriever(mmlu_rets, [0.25, 0.25, 0.25, 0.25]) 
 
-        # ewha for default
-        default_retriever  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap, thres=default_thres)
+    # ewha for default
+    default_retriever  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap, thres=default_thres)
 
     # Make prompt template  
     templates = [EWHA_PROMPT, MMLU_PROMPT, BASE_PROMPT]
@@ -96,7 +96,7 @@ def main(
     llm = get_llm(temperature=0)
 
     # rounting
-    chain = get_multiret_qa_chain(llm, [ewha_retriever]+mmlu_rets+[default_retriever], templates)
+    chain = get_multiret_qa_chain(llm, [ewha_retriever, default_retriever], templates)
                  
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
