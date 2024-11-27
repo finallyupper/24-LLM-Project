@@ -23,6 +23,7 @@ def main(
     chunk_size = config['chunk_size'] 
     chunk_overlap = config['chunk_overlap']
     top_k = config['top_k']
+    top_k_wiki = config['top_k_wiki']
     ewha_thres = config['ewha_thres'] # Modified(Su): similarity_score_threshold
     mmlu_thres = config['mmlu_thres'] # Modified(Su): similarity_score_threshold
     default_thres = config['default_thres'] # Modified(Su): similarity_score_threshold
@@ -89,6 +90,9 @@ def main(
     # ewha for default
     default_retriever  = ret_dict.get(ewha_ret1)[1](splits, save_dir=ret_dict.get(ewha_ret1)[2], top_k=top_k, chunk_size=chunk_size, chunk_overlap=chunk_overlap, thres=default_thres)
 
+    # wiki for mmlu
+    wiki_retriever = get_wiki(top_k=top_k_wiki)
+
     # Make prompt template  
     templates = [EWHA_PROMPT, MMLU_PROMPT, BASE_PROMPT]
 
@@ -96,16 +100,20 @@ def main(
     llm = get_llm(temperature=0)
 
     # rounting
-    chain = get_multiret_qa_chain(llm, [ewha_retriever, default_retriever], templates)
+    chain = route(llm, [ewha_retriever, wiki_retriever, default_retriever], templates)
+    safeguard_chain = PromptTemplate.from_template(BASE_PROMPT) | llm
                  
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
     questions, answers = read_data(data_root, filename="test85_final.csv") 
-    responses = get_responses(chain=chain, prompts=questions, wiki=True, wiki_prompt=BASE_PROMPT)
+    responses = get_responses(chain=chain, safeguard=safeguard_chain, prompts=questions)
     accuracy_total, accuracy_ewha, accuracy_mmlu = eval(questions, answers, responses, debug=True) 
 
+    
+    print(f"{top_k_wiki=}")
     print(f"{ewha_thres=}")
     print(f"{mmlu_thres=}")
+    print(f"{default_thres=}")
     print(sys.argv)
 
 if __name__=="__main__":

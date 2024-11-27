@@ -1,8 +1,9 @@
 # config.yaml
 data_root: /home/sml09181/SJ/nlp/24-LLM-Project/data
-chunk_size: 800
+chunk_size: 400
 chunk_overlap: 100
 top_k: 5
+top_k_wiki: 2
 default_thres: 0.1
 
 # For ewha questions
