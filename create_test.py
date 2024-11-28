@@ -1,5 +1,5 @@
 """
-Last Updated: 24/11/08
+Convert the MMLU-Pro dataset from Hugging Face into our test sample format
 """
 import os
 import parmap
@@ -10,7 +10,6 @@ from datasets import load_dataset
 from datasets import concatenate_datasets
 
 def extract_row(row):
-    
     prompt = f'QUESTION{idx.value}) {row['question']}\n'
     for i in range(len(row['options'])):
         opt = chr(ord('A') + i) 

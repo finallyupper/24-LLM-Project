@@ -41,7 +41,7 @@ from langchain.tools.retriever import create_retriever_tool
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 from utils import *
-from prompts import MULTI_RETRIEVAL_ROUTER_TEMPLATE
+from prompts import MULTI_RETRIEVAL_ROUTER_TEMPLATE, TEACHER_TEMPLATE, TEACHER_SG_TEMPLATE
 from typing import Any, Dict, List, Mapping, Optional
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import PromptTemplate
@@ -136,7 +136,6 @@ def get_qa_chain(llm, retriever, prompt_template=None):
         | prompt_template
         | llm
     )
-
     return rag_chain 
 
 class newMultiVectorRetriever(MultiVectorRetriever):
@@ -280,7 +279,7 @@ def get_wiki_chain(prompt_template=None):
     )
     return chain 
 
-def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
+def route(llm, retrievers, prompt_template=None):
     """A multi-route chain that uses an LLM router chain to choose amongst retrieval
     qa chains."""
 
@@ -302,31 +301,31 @@ def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
         {
             "name": "law_retriever",
             "description": "An expert for law; a set of rules that are created and are enforceable by social or governmental institutions to regulate behavior,[1] with its precise definition a matter of longstanding debate. law is a system of rules established by governing authorities to regulate behavior, maintain order, and resolve disputes. Not related with university rules",
-            "retriever": retrievers[1],
+            "retriever": retrievers[1][0],
             "prompt": prompt_template2
         },
         {
             "name": "psychology_retriever",
             "description": "An expert for psychology; the scientific study of mind and behavior. Its subject matter includes the behavior of humans and nonhumans, both conscious and unconscious phenomena, and mental processes such as thoughts, feelings, and motives. psychology is the scientific study of the mind and behavior, exploring how individuals think, feel, and act. Not related with university rules",
-            "retriever": retrievers[2],
+            "retriever": retrievers[1][1],
             "prompt": prompt_template2
         },
         {
             "name": "philosophy_retriever",
             "description": "An expert for philosophy; a systematic study of general and fundamental questions concerning topics like existence, reason, knowledge, value, mind, and language. It is a rational and critical inquiry that reflects on its own methods and assumptions. Philosophy is the study of fundamental questions regarding existence, knowledge, ethics, and reason. Not related with university rules",
-            "retriever": retrievers[3],
+            "retriever": retrievers[1][2],
             "prompt": prompt_template2
         },
         {
             "name": "business_retriever",
             "description": "An expert for business; the practice of making one's living or making money by producing or buying and selling products (such as goods and services). It is also 'any activity or enterprise entered into for profit.' business involves the creation, management, and operation of organizations that provide goods or services for profit. Not related with university rules",
-            "retriever": retrievers[4],
+            "retriever": retrievers[1][3],
             "prompt": prompt_template2
         },
         {
             "name": "history_retriever",
             "description": "An expert for history; the systematic study and documentation of the human past. history is the study of past events and societies, examining how they have shaped the present and future. Human history is the record of humankind from prehistory to the present. Not related with university rules",
-            "retriever": get_wiki(),
+            "retriever": retrievers[1][3], ## Need Modification
             "prompt": prompt_template2
         },
     ]
@@ -342,36 +341,78 @@ def get_multiret_qa_chain(llm, retrievers, prompt_template=None):
         verbose=True
     )
     return multi_retrieval_qa_chain 
-    
-def get_responses(chain, prompts, wiki=False, wiki_prompt=None):
+
+
+def get_teacher_chain():
+    llm = get_llm(temperature=0)
+    chain = (
+        PromptTemplate.from_template(TEACHER_SG_TEMPLATE) | llm
+        )
+    return chain
+
+def check_by_teacher(chain, response):
+    response = chain.invoke({"question": response['input'], "answer": response['result']})
+    #response.content = response.content.replace("the correct answer is", "[ANSWER]:")
+    if 'incorrect' in response.content.lower():
+        return False, response
+    else: return True, response
+
+def get_alphabet(question, response, debug=False):
+    answer = get_answers(response)
+    if 'Answer:\n' in answer:
+        answer = answer.replace("Answer:\n", f"[ANSWER]: ")
+        print("&&EUREKA:", "[ANSWER]: "+ answer.split('[ANSWER]:')[-1].strip())
+    else:
+        pattern = r'\(([A-Z])\)\s(.*?)\n'
+        options = re.findall(pattern, question)
+        print("&&OPTIONS:", options)
+        candidate = answer.split('[ANSWER]:')[-1].strip()
+        for (question_alphabet, question_text) in options:
+            if debug:
+                print(f"&&&{question_alphabet}:")
+                print(" ", question_text.strip())
+                print(" ", answer.split('[ANSWER]:')[-1].strip())
+            if candidate.startswith(question_text.strip()) \
+                or ''.join(candidate.split(' ')).startswith(''.join(question_text.strip().split(' '))):
+                answer = answer.replace("[ANSWER]:", f"[ANSWER]: ({question_alphabet}) {question_text}")
+                print("&&EUREKA:", "[ANSWER]: "+ answer.split('[ANSWER]:')[-1].strip())
+                return answer
+    return answer
+
+def get_answers(response):
+    if isinstance(response, str): answer = response
+    else:
+        try: answer = response['result']
+        except: answer = response.content
+    return answer
+
+def get_responses(chain, safeguard, prompts):
     # read samples.csv file
     responses = []
-    if wiki:
-        wiki_chain = get_wiki_chain(wiki_prompt)
+    teacher = get_teacher_chain()
     for prompt in tqdm(prompts, desc="Processing questions"):
+        #prompt = PromptTemplate.from_template(prompt)
         # No relevant docs were retrieved using the relevance score threshold 0.8
         try:
             response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
             print("&&ROUTE: ", response)
-            if len(response['source_documents']) <1:
-                response = wiki_chain.invoke(prompt)
-                print("&&WIKI: ", response)
+            #is_correct_by_teacher, teacher_res = check_by_teacher(teacher, response)
+            # (not is_correct_by_teacher or extract_answer(response['result']) is None)
+            if extract_answer(response['result']) is None:
+                response['result'] = get_alphabet(prompt, response)
+            if len(response['source_documents']) > 0 and extract_answer(response['result']) is None:
+                response = safeguard[0].invoke(prompt)
+                print("&&EWHA SAFEGUARD: ", response)
+            if len(response['source_documents']) < 1 or extract_answer(response['result']) is None:
+                response = safeguard[1].invoke(prompt)
+                response = get_alphabet(prompt, response)
+                #response = teacher_res 
+                #print("&&TEACHER: ", teacher_res)
+                print("&&MMLU SAFEGUARD: ", response)
         except ValueError: # ValueError: Received invalid destination chain name 'education_retriever'
-            response = wiki_chain.invoke(prompt)
-            print("&&WIKI: ", response)
-        try:
-            responses.append(response.content)
-        except:
-            responses.append(response['result']) # For routing
-        
-            
-    """
-    {
-    'input': 'QUESTION1) 학칙에서 총장이 따로 정해야 하는 사항으로 옳은 것을 모두 고르시오.\n(A) 교양과목의 종류와 학점\n(B) 학과별 최소 전공 이수 학점\n(C) 수업시간표\n(D) 졸업논문의 시행 방법\n(E) A와 B만 올바름\n(F) A와 C만 올바름\n(G) A와 D만 올바름\n(H) A와 B와 C만 올바름\n(I) A와 B와 D만 올바름\n(J) A와 C와 D만 올바름', 
-    'query': '학칙에서 총장이 따로 정해야 하는 사항에 대해 알려주세요.', 
-    'result': '[답변]: (A) 학칙에서 총장이 따로 정해야 하는 사항'
-    }
-    """
+            response = safeguard[0].invoke(prompt)
+            print("&&SAFEGUARD: ", response)
+        responses.append(get_answers(response))
     return responses
 
 def get_agent_responses(agent, prompts):
@@ -417,7 +458,6 @@ def get_bm25(splits, save_dir="./db/bm25", chunk_size=None, chunk_overlap=None, 
     if not os.path.exists(bm25_path):
         print("[INFO] Creating BM25 index...")
         # Make BM25
-        print(splits)
         bm25_retriever = BM25Retriever.from_documents(documents=splits)
         bm25_retriever.k = top_k
         # Save BM25
@@ -718,7 +758,7 @@ def get_pc_chroma_cos(splits, save_dir="./db/pc_chroma_cos", top_k=4, chunk_size
         retriever_test(vectorstore, retriever, "생활환경대학의 기존 이름은?", "pc_chroma")
     return retriever
 
-def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, chunk_overlap=100, debug=False):
+def get_pc_chroma(splits, save_dir="./db/pc_chroma", top_k=4, chunk_size=1000, chunk_overlap=100, thres=0.4, debug=False):
     """Parent Document Retreiver using Chroma"""
     embeddings = get_embedding() 
     #docstore_path = os.path.join(save_dir, "docstore_pc.pkl")

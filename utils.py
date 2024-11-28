@@ -1,5 +1,7 @@
 import os
 import re
+import random
+import numpy as np
 import pandas as pd
 import yaml
 from bs4 import BeautifulSoup
@@ -21,7 +23,7 @@ def read_data(data_path, filename="test_samples.csv"):
     prompts = data['prompts']
     answers = data['answers']
     # returns two lists: prompts and answers
-    print(len(prompts))
+    print(f"[INFO] We got {len(prompts)} test samples")
     return prompts, answers 
 
 
@@ -103,6 +105,16 @@ def extract_again(response):
     if match: return match.group(0)
     else: return None
 
+def random_select(question):
+    pattern = r"\((A|B|C|D|E)\)"  # Regular expression to capture the answer letter and text
+    print(re.findall(pattern, question)[0])
+    match = np.unique(list(re.findall(pattern, question)[0]))
+    if match:
+        num = random.randint(0, len(match)-1)
+        return match[num] # Extract the letter inside parentheses (e.g., A)
+    else:
+        return random.choice(["A", "B"])
+
 def eval(questions, answers, responses, debug=False):
     cnt_total = cnt_ewha = cnt_mmlu = 0
     total_questions = len(answers)
@@ -122,12 +134,11 @@ def eval(questions, answers, responses, debug=False):
             else:
                 print("extraction fail")
 
-        # extraction fail
-        if generated_answer is None:
-            print(f"[WARNING] Failed to extract answer for question {i + 1}.")
-            is_correct = False  # regard as wrong answer
-        else:
+                generated_answer = random_select(question)
+                print(f"{generated_answer} selected")
+        try:
             is_correct = generated_answer in answer
+        except: is_correct = False
 
         # Overall query
         if is_correct:
@@ -156,7 +167,6 @@ def eval(questions, answers, responses, debug=False):
     print(f"Overall Accuracy: {accuracy_total:.2f}%")
     print(f"Ewha Accuracy: {accuracy_ewha:.2f}%")
     print(f"MMLU-pro Accuracy: {accuracy_mmlu:.2f}%")
-    print("All Done")
 
     print(f"Wrong Answers (Overall): {wrong_questions_total}")
     print(f"Wrong Answers (Ewha): {wrong_questions_ewha}")

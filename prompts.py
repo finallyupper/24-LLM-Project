@@ -1,23 +1,38 @@
-BASE_PROMPT = """
-            Please provide most correct answer from the following context.
-            If the answer or related information is not present in the context, 
-            solve the question without depending on the given context. 
-            Please summarize the information you referred to along with the reasons why.
-            You should give clear answer. Also, You are smart and very good at mathematics.
-                NOTE) You MUST answer like following format at the end.
-            ---
+EWHA_PROMPT = """
+        Answer the question based on the context below. You have ability to reasoning.
+        If not sure about the answer, solve the question without depending on the given context.
+        Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
+        Explain the intent behind the question.
 
-            ### Example of expected format: 
-            [ANSWER]: (A) convolutional networks
+        ### Context:
+        {context}
 
-            ---
-            ###Question: 
-            {question}
-            ---
-            ###Context: 
-            {context}
-            """
+        ### Question:
+        {question}
 
+        ---
+        You MUST answer like following format at the end. 
+
+        ### Example of desired format:
+        [ANSWER]: (A) convolutional networks
+        """
+
+BASE_PROMPT = MMLU_PROMPT = EWHA_PROMPT
+
+SG_PROMPT = """
+        Answer the question based on the context below. You have ability to reasoning.
+        Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
+        Explain the intent behind the question.
+
+        ### Question:
+        {question}
+
+        ---
+        You MUST answer like following format at the end.
+        
+        ### Example of desired format:
+        [ANSWER]: (A) convolutional networks
+        """
 
 MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     Given the input, choose the most appropriate model prompt based on the provided prompt descriptions.
@@ -45,46 +60,49 @@ MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     << OUTPUT (remember to include the ```json)>>
     """
 
-EWHA_PROMPT = """
-    Please provide most correct answer from the following context.
-    If the answer or related information is not present in the context, 
-    solve the question without depending on the given context. 
-    Please summarize the information you referred to along with the reasons why.
-    You should give clear answer. Also, You are smart and very good at mathematics.
-        NOTE) You MUST answer like following format at the end.
-    ---
 
-    ### Example of expected format: 
-    [ANSWER]: (A) convolutional networks
-
+#     
+TEACHER_TEMPLATE = """
+    You are a logical and intelligent teacher.
+    You are teaching one student, and this student can be smart sometimes and not so bright at other times.
+    You gave the student the following question:
     ---
-    ###Question: 
+    ###Question:
     {question}
-    ---
-    ###Context: 
-    {context}
-"""
-
-MMLU_PROMPT = """
-    Please provide most correct answer from the following context.
-    If the answer or related information is not present in the context, 
-    solve the question without depending on the given context. 
-    Please summarize the information you referred to along with the reasons why.
-    You should give clear answer. Also, You are smart and very good at mathematics.
-        NOTE) You MUST answer like following format at the end.
-    ---
-
-    ### Example of expected format: 
-    [ANSWER]: (A) convolutional networks
 
     ---
-    ###Question: 
-    {question}
+    And you received the student’s answer:
+    ###Answer:
+    {answer}
+
     ---
-    ###Context: 
-    {context}
+    Please analyze whether the student’s answer is correct or incorrect, with an explanation to student step by step.
+    NOTE) At the end, you MUST say either “Correct” or “Incorrect” regarding the student’s answer.
     """
 
+TEACHER_SG_TEMPLATE = """
+    You are a logical and intelligent teacher.
+    You are teaching one student, and this student can be smart sometimes and not so bright at other times.
+    You gave the student the following question:
+    ---
+    ###Question:
+    {question}
+
+    ---
+    And you received the student’s answer:
+    ###Answer:
+    {answer}
+
+    ---
+    Please analyze whether the student’s answer is correct or incorrect, with an explanation to student step by step.
+    If the student’s answer is incorrect, you should give correct answer with example format.
+    NOTE) You MUST conclude correct answer like following format at the end. Remind that you can only one from multiple choices.
+    
+    ---
+
+    ### Example of expected format:
+    [ANSWER]: (A) convolutional networks
+    """
 
 RAPTOR_EWHA_TEMPLATE = """
     여기 이화여자대학교 학칙 문서가 있습니다.
