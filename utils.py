@@ -1,5 +1,7 @@
 import os
 import re
+import random
+import numpy as np
 import pandas as pd
 import yaml
 from bs4 import BeautifulSoup
@@ -103,6 +105,16 @@ def extract_again(response):
     if match: return match.group(0)
     else: return None
 
+def random_select(question):
+    pattern = r"\((A|B|C|D|E)\)"  # Regular expression to capture the answer letter and text
+    print(re.findall(pattern, question)[0])
+    match = np.unique(list(re.findall(pattern, question)[0]))
+    if match:
+        num = random.randint(0, len(match)-1)
+        return match[num] # Extract the letter inside parentheses (e.g., A)
+    else:
+        return random.choice(["A", "B"])
+
 def eval(questions, answers, responses, debug=False):
     cnt_total = cnt_ewha = cnt_mmlu = 0
     total_questions = len(answers)
@@ -121,8 +133,11 @@ def eval(questions, answers, responses, debug=False):
                 print(f"\ngenerated answer: {generated_answer}, answer: {answer}")
             else:
                 print("extraction fail")
-
-        is_correct = generated_answer in answer
+                generated_answer = random_select(question)
+                print(f"{generated_answer} selected")
+        try:
+            is_correct = generated_answer in answer
+        except: is_correct = False
 
         # Overall query
         if is_correct:

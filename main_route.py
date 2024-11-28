@@ -4,6 +4,7 @@ import warnings
 from argparse import ArgumentParser
 from datasets import load_dataset
 from langchain_engine.langchain_engine import *
+from langchain.chains.retrieval_qa.base import BaseRetrievalQA, RetrievalQA
 from prompts import *
 warnings.filterwarnings('ignore') 
 
@@ -101,12 +102,13 @@ def main(
 
     # rounting
     chain = route(llm, [ewha_retriever, wiki_retriever, default_retriever], templates)
-    safeguard_chain = PromptTemplate.from_template(BASE_PROMPT) | llm
-                 
+    mmlu_safeguard_chain = PromptTemplate.from_template(SG_PROMPT) | llm
+    ewha_safeguard_chain = RetrievalQA.from_llm(llm, prompt=PromptTemplate.from_template(EWHA_PROMPT), return_source_documents=True, retriever=ewha_retriever)
+
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
     questions, answers = read_data(data_root, filename="test85_final.csv") 
-    responses = get_responses(chain=chain, safeguard=safeguard_chain, prompts=questions)
+    responses = get_responses(chain=chain, safeguard=[ewha_safeguard_chain, mmlu_safeguard_chain], prompts=questions)
     accuracy_total, accuracy_ewha, accuracy_mmlu = eval(questions, answers, responses, debug=True) 
 
     
@@ -115,6 +117,7 @@ def main(
     print(f"{mmlu_thres=}")
     print(f"{default_thres=}")
     print(sys.argv)
+    print(templates)
 
 if __name__=="__main__":
     ewha_retrievers_type = ["faiss", "bm25", "rap_faiss", "pc_faiss", "pc_chroma", "summ_faiss", "summ_chroma", "pc_chroma_cos"]

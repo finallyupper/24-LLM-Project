@@ -41,7 +41,7 @@ from langchain.tools.retriever import create_retriever_tool
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 from utils import *
-from prompts import MULTI_RETRIEVAL_ROUTER_TEMPLATE
+from prompts import MULTI_RETRIEVAL_ROUTER_TEMPLATE, WIKI_KEYWORD_TEMPLATE, TEACHER_TEMPLATE, TEACHER_SG_TEMPLATE
 from typing import Any, Dict, List, Mapping, Optional
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import PromptTemplate
@@ -342,34 +342,68 @@ def route(llm, retrievers, prompt_template=None):
         verbose=True
     )
     return multi_retrieval_qa_chain 
-    
+
+
+def get_teacher_chain():
+    llm = get_llm(temperature=0)
+    chain = (
+        PromptTemplate.from_template(TEACHER_SG_TEMPLATE) | llm
+        )
+    return chain
+
+def check_by_teacher(chain, response):
+    response = chain.invoke({"question": response['input'], "answer": response['result']})
+    #response.content = response.content.replace("the correct answer is", "[ANSWER]:")
+    if 'incorrect' in response.content.lower():
+        return False, response
+    else: return True, response
+
+def get_alphabet(question, answer, debug=False):
+    pattern = r'\(([A-Z])\)\s(.*?)\n'
+    options = re.findall(pattern, question)
+    print("&&OPTIONS:", options)
+    candidate = answer.split('[ANSWER]:')[-1].strip()
+    for (question_alphabet, question_text) in options:
+        if debug:
+            print(f"&&&{question_alphabet}:")
+            print(" ", question_text.strip())
+            print(" ", answer.split('[ANSWER]:')[-1].strip())
+        if candidate.startswith(question_text.strip()) \
+            or ''.join(candidate.split(' ')).startswith(''.join(question_text.strip().split(' '))):
+            answer = answer.replace("[ANSWER]:", f"[ANSWER]: ({question_alphabet}) {question_text}")
+            print("&&EUREKA:", f"[ANSWER]: ({question_alphabet}) {question_text}")
+            return answer
+    return answer
+
 def get_responses(chain, safeguard, prompts):
     # read samples.csv file
     responses = []
+    teacher = get_teacher_chain()
     for prompt in tqdm(prompts, desc="Processing questions"):
+        #prompt = PromptTemplate.from_template(prompt)
         # No relevant docs were retrieved using the relevance score threshold 0.8
         try:
             response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
             print("&&ROUTE: ", response)
-            if len(response['source_documents']) <1:
-                response = safeguard.invoke(prompt)
-                print("&&SAFEGUARD: ", response)
+            #is_correct_by_teacher, teacher_res = check_by_teacher(teacher, response)
+            # (not is_correct_by_teacher or extract_answer(response['result']) is None)
+            if extract_answer(response['result']) is None:
+                response['result'] = get_alphabet(prompt, response['result'])
+            if len(response['source_documents']) > 0 and extract_answer(response['result']) is None:
+                response = safeguard[0].invoke(prompt)
+                print("&&EWHA SAFEGUARD: ", response)
+            if len(response['source_documents']) < 1 or extract_answer(response['result']) is None:
+                response = safeguard[1].invoke(prompt)
+                #response = teacher_res 
+                #print("&&TEACHER: ", teacher_res)
+                print("&&MMLU SAFEGUARD: ", response)
         except ValueError: # ValueError: Received invalid destination chain name 'education_retriever'
-            response = safeguard.invoke(prompt)
+            response = safeguard[0].invoke(prompt)
             print("&&SAFEGUARD: ", response)
         try:
             responses.append(response.content)
         except:
             responses.append(response['result']) # For routing
-        
-            
-    """
-    {
-    'input': 'QUESTION1) 학칙에서 총장이 따로 정해야 하는 사항으로 옳은 것을 모두 고르시오.\n(A) 교양과목의 종류와 학점\n(B) 학과별 최소 전공 이수 학점\n(C) 수업시간표\n(D) 졸업논문의 시행 방법\n(E) A와 B만 올바름\n(F) A와 C만 올바름\n(G) A와 D만 올바름\n(H) A와 B와 C만 올바름\n(I) A와 B와 D만 올바름\n(J) A와 C와 D만 올바름', 
-    'query': '학칙에서 총장이 따로 정해야 하는 사항에 대해 알려주세요.', 
-    'result': '[답변]: (A) 학칙에서 총장이 따로 정해야 하는 사항'
-    }
-    """
     return responses
 
 def get_agent_responses(agent, prompts):
