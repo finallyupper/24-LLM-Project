@@ -3,11 +3,11 @@ data_root: /home/sml09181/SJ/nlp/24-LLM-Project/data
 chunk_size: 400
 chunk_overlap: 100
 top_k: 5
-top_k_wiki: 2
-default_thres: 0.1
+top_k_wiki: 3
+default_thres: 0.0
 
 # For ewha questions
-ewha_thres: 0.00001
+ewha_thres: 0.001
 ewha_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/ewha/ewha_faiss_fix
 ewha_bm25_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/ewha/bm25_fix
 
@@ -18,7 +18,7 @@ pc_chroma_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_chroma_new
 pc_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_faiss
 pc_chroma_cos_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/pc_chroma_cos
 
-raptor_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/raptor/RAPTOR_faiss_fix_overlap 
+raptor_faiss_path: /home/sml09181/SJ/nlp/24-LLM-Project/db/raptor/RAPTOR_faiss_fix
 
 # For mmlu questions
 mmlu_thres: 0.4

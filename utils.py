@@ -23,7 +23,7 @@ def read_data(data_path, filename="test_samples.csv"):
     prompts = data['prompts']
     answers = data['answers']
     # returns two lists: prompts and answers
-    print(len(prompts))
+    print(f"[INFO] We got {len(prompts)} test samples")
     return prompts, answers 
 
 
@@ -166,7 +166,6 @@ def eval(questions, answers, responses, debug=False):
     print(f"Overall Accuracy: {accuracy_total:.2f}%")
     print(f"Ewha Accuracy: {accuracy_ewha:.2f}%")
     print(f"MMLU-pro Accuracy: {accuracy_mmlu:.2f}%")
-    print("All Done")
 
     print(f"Wrong Answers (Overall): {wrong_questions_total}")
     print(f"Wrong Answers (Ewha): {wrong_questions_ewha}")

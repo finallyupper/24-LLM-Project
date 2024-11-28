@@ -1,34 +1,38 @@
+EWHA_PROMPT = """
+        Answer the question based on the context below. You have ability to reasoning.
+        If not sure about the answer, solve the question without depending on the given context.
+        Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
+        Explain the intent behind the question.
 
+        ### Context:
+        {context}
 
-BASE_PROMPT = """
-    Answer the question based on the context below. You have ability to reasoning.
-    If not sure about the answer, solve the question without depending on the given context.
-    Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
-    Explain the intent behind the question.
-    NOTE) You MUST answer like following format at the end.
+        ### Question:
+        {question}
 
-    ### Example of desired format:
-    [ANSWER]: (A) convolutional networks
+        ---
+        You MUST answer like following format at the end. 
 
-    ### Context:
-    {context}
+        ### Example of desired format:
+        [ANSWER]: (A) convolutional networks
+        """
 
-    ### Question:
-    {question}
-    """
+BASE_PROMPT = MMLU_PROMPT = EWHA_PROMPT
 
 SG_PROMPT = """
-    Answer the question based on the context below. First, explain the intent behind the question.
-    You have ability to reasoning. 
-    Infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
-    You MUST answer like following format at the end.
+        Answer the question based on the context below. You have ability to reasoning.
+        Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
+        Explain the intent behind the question.
 
-    ### Example of desired format:
-    [ANSWER]: (A) convolutional networks
+        ### Question:
+        {question}
 
-    ### Question:
-    {question}
-    """
+        ---
+        You MUST answer like following format at the end.
+        
+        ### Example of desired format:
+        [ANSWER]: (A) convolutional networks
+        """
 
 MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     Given the input, choose the most appropriate model prompt based on the provided prompt descriptions.
@@ -56,47 +60,6 @@ MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     << OUTPUT (remember to include the ```json)>>
     """
 
-EWHA_PROMPT = """
-    Answer the question based on the context below. You have ability to reasoning.
-    If not sure about the answer, solve the question without depending on the given context.
-    Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
-    Explain the intent behind the question.
-    NOTE) You MUST answer like following format at the end.
-
-    ### Example of desired format:
-    [ANSWER]: (A) convolutional networks
-
-    ### Context:
-    {context}
-
-    ### Question:
-    {question}
-    """
-
-MMLU_PROMPT = """
-    Answer the question based on the context below. You have ability to reasoning.
-    If not sure about the answer, solve the question without depending on the given context.
-    Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
-    Explain the intent behind the question.
-    NOTE) You MUST answer like following format at the end.
-
-    ### Example of desired format:
-    [ANSWER]: (A) convolutional networks
-
-    ### Context:
-    {context}
-
-    ### Question:
-    {question}
-    """
-
-WIKI_KEYWORD_TEMPLATE = """
-    Extract 2~3 keywords from given Context.
-    NOTE) You MUST answer only keywords.
-    ---
-    ###Context:
-    {context}
-    """
 
 #     
 TEACHER_TEMPLATE = """
