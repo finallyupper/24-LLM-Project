@@ -133,6 +133,7 @@ def eval(questions, answers, responses, debug=False):
                 print(f"\ngenerated answer: {generated_answer}, answer: {answer}")
             else:
                 print("extraction fail")
+
                 generated_answer = random_select(question)
                 print(f"{generated_answer} selected")
         try:
