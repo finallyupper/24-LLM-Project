@@ -40,8 +40,8 @@ from langchain import hub
 from langchain.tools.retriever import create_retriever_tool
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-from utils import *
-from prompts import MULTI_RETRIEVAL_ROUTER_TEMPLATE, TEACHER_TEMPLATE, TEACHER_SG_TEMPLATE
+from engine.utils import *
+from prompts import MULTI_RETRIEVAL_ROUTER_TEMPLATE, TEACHER_SG_TEMPLATE
 from typing import Any, Dict, List, Mapping, Optional
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import PromptTemplate
@@ -325,7 +325,7 @@ def route(llm, retrievers, prompt_template=None):
         {
             "name": "history_retriever",
             "description": "An expert for history; the systematic study and documentation of the human past. history is the study of past events and societies, examining how they have shaped the present and future. Human history is the record of humankind from prehistory to the present. Not related with university rules",
-            "retriever": retrievers[1][3], ## Need Modification
+            "retriever": retrievers[1][4], 
             "prompt": prompt_template2
         },
     ]
@@ -386,7 +386,7 @@ def get_answers(response):
         except: answer = response.content
     return answer
 
-def get_responses(chain, safeguard, prompts):
+def get_responses(chain, safeguard, prompts, debug=False):
     # read samples.csv file
     responses = []
     teacher = get_teacher_chain()
@@ -395,23 +395,23 @@ def get_responses(chain, safeguard, prompts):
         # No relevant docs were retrieved using the relevance score threshold 0.8
         try:
             response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
-            print("&&ROUTE: ", response)
+            if debug: print("&&ROUTE: ", response)
             #is_correct_by_teacher, teacher_res = check_by_teacher(teacher, response)
             # (not is_correct_by_teacher or extract_answer(response['result']) is None)
             if extract_answer(response['result']) is None:
                 response['result'] = get_alphabet(prompt, response)
             if len(response['source_documents']) > 0 and extract_answer(response['result']) is None:
                 response = safeguard[0].invoke(prompt)
-                print("&&EWHA SAFEGUARD: ", response)
+                if debug: print("&&EWHA SAFEGUARD: ", response)
             if len(response['source_documents']) < 1 or extract_answer(response['result']) is None:
                 response = safeguard[1].invoke(prompt)
                 response = get_alphabet(prompt, response)
                 #response = teacher_res 
                 #print("&&TEACHER: ", teacher_res)
-                print("&&MMLU SAFEGUARD: ", response)
+                if debug: print("&&MMLU SAFEGUARD: ", response)
         except ValueError: # ValueError: Received invalid destination chain name 'education_retriever'
             response = safeguard[0].invoke(prompt)
-            print("&&SAFEGUARD: ", response)
+            if debug: print("&&SAFEGUARD: ", response)
         responses.append(get_answers(response))
     return responses
 

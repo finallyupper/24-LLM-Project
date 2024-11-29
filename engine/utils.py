@@ -89,28 +89,33 @@ def format_hist_docs(data):
     formatted_doc = f'### Question: {question}\nAnswer:\n{answer}\n'
     return formatted_doc
 
+# Modified(Yoojin)
 def extract_answer(response):
-    # funcion to extract an answer from response
     """
-    extracts the answer from the response using a regular expression.
-    expected format: "[ANSWER]: (A) convolutional networks"
-
-    if there are any answers formatted like the format, it returns None.
+    Extracts the answer from the response using a regular expression.
+    Expected format: "[ANSWER]: (A) convolutional networks"
+    If multiple answers are formatted like "(A) (B) (C)", it returns the last option (e.g., "C").
     """
-    pattern = r"\[ANSWER\]:\s*\((A|B|C|D|E)\)"  # Regular expression to capture the answer letter and text
-    match = re.search(pattern, response)
-
-    if match:
-        return match.group(1) # Extract the letter inside parentheses (e.g., A)
+    # Match multiple options like "(A) (B) (C)" and extract the last one
+    pattern = r"\[ANSWER\]:.*\((A|B|C|D|E)\)"
+    matches = re.findall(pattern, response)
+    
+    if matches:
+        return matches[-1]  # Return the last match (e.g., "C")
     else:
-        return extract_again(response) 
+        return extract_again(response)
     
 def extract_again(response):
-    pattern = r"\b[A-J]\b(?!.*\b[A-J]\b)"
+    """
+    Attempts to extract a single letter answer as a fallback.
+    """
+    pattern = r"\b[A-J]\b(?!.*\b[A-J]\b)"  # Match a single letter between A and J, but ensure it's the last one
     match = re.search(pattern, response)
-    if match: return match.group(0)
-    else: return None
-
+    if match:
+        return match.group(0)
+    else:
+        return None
+    
 def random_select(question):
     pattern = r"\((A|B|C|D|E)\)"  # Regular expression to capture the answer letter and text
     print(re.findall(pattern, question)[0])

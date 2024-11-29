@@ -1,11 +1,11 @@
 import sys
-from utils import * 
-import warnings
-from argparse import ArgumentParser
-from datasets import load_dataset
-from langchain_engine.langchain_engine import *
-from langchain.chains.retrieval_qa.base import BaseRetrievalQA, RetrievalQA
+from langchain.chains.retrieval_qa.base import RetrievalQA
+
+from engine.utils import * 
+from engine.langchain_engine import *
 from prompts import *
+import warnings
+
 warnings.filterwarnings('ignore') 
 
 """
@@ -17,8 +17,10 @@ def main():
     load_env(".env")
     config = load_yaml("config.yaml") 
     data_root = config['data_root']
+
     chunk_size = config['chunk_size'] 
     chunk_overlap = config['chunk_overlap']
+
     top_k = config['top_k']
     ewha_thres = config['ewha_thres'] 
     mmlu_thres = config['mmlu_thres']
@@ -29,32 +31,20 @@ def main():
     law_faiss_path = config['law_faiss_path']
     psychology_faiss_path = config['psychology_faiss_path']
     philosophy_faiss_path = config['philosophy_faiss_path']
+    history_faiss_path = config['history_faiss_path']
 
-    # discarded
-    # ewha_faiss_path = config['ewha_faiss_path']
-    # ewha_bm25_path = config['ewha_bm25_path'] 
-    # summ_chroma_path = config['summ_chroma_path']
-    # summ_faiss_path = config['summ_faiss_path']
-    # pc_chroma_path = config['pc_chroma_path']
-    # pc_chroma_cos_path = config['pc_chroma_cos_path']
-    # pc_faiss_path = config['pc_faiss_path']
-
+    print(f"[INFO] Top k={top_k} | Thrs(Ewha,MMLU,Default)=({ewha_thres},{mmlu_thres},{default_thres}) | Chunk Size={chunk_size} | Chunk Overlap={chunk_overlap}")
+    
     # Load and Split documents
     splits = [];
     ret_dict = {
-        # "faiss": [split_docs, get_faiss, ewha_faiss_path],
-        # "bm25": [split_docs, get_bm25, ewha_bm25_path],
-        # "pc_faiss": [load_ewha, get_pc_faiss, pc_faiss_path],
-        # "pc_chroma": [load_ewha, get_pc_chroma, pc_chroma_path],
-        # "pc_chroma_cos": [split_docs, get_pc_chroma_cos, pc_chroma_cos_path],
-        # "summ_faiss": [load_ewha, get_summ_faiss, summ_faiss_path],
-        # "summ_chroma": [load_ewha, get_summ_chroma, summ_chroma_path],
         "rap_faiss": [split_docs, get_faiss, raptor_faiss_path],
 
         "biz_faiss": [load_custom_dataset, get_faiss, business_faiss_path],
         "law_faiss": [load_custom_dataset, get_faiss, law_faiss_path],
         "psy_faiss": [load_custom_dataset, get_faiss, psychology_faiss_path],
-        "phil_faiss": [load_custom_dataset,get_faiss, philosophy_faiss_path]
+        "phil_faiss": [load_custom_dataset,get_faiss, philosophy_faiss_path],
+        "hist_faiss": [load_custom_dataset, get_faiss, history_faiss_path]
     }
 
     # Get retriever for ewha
@@ -71,7 +61,7 @@ def main():
                                     thres=ewha_thres)
 
     # Get retriever for mmlu
-    mmlu_ret_paths = [business_faiss_path, law_faiss_path, psychology_faiss_path, philosophy_faiss_path]
+    mmlu_ret_paths = [business_faiss_path, law_faiss_path, psychology_faiss_path, philosophy_faiss_path, history_faiss_path]
     mmlu_rets = []
     mmlu_data_splits = []
     for faiss_path in mmlu_ret_paths:
@@ -86,7 +76,7 @@ def main():
                     top_k=top_k, 
                     thres=mmlu_thres) 
         mmlu_rets.append(ret) 
-    assert len(mmlu_rets) == 4, "The number of retrievers should be 4."
+    assert len(mmlu_rets) == 5, "The number of retrievers should be 4."
     #mmlu_retriever_ensemble = get_ensemble_retriever(mmlu_rets, [0.25, 0.25, 0.25, 0.25]) 
 
     # Get default retriever (same with ewha retriever except threshold)
@@ -114,7 +104,7 @@ def main():
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
     questions, answers = read_data(data_root, filename="test85_final.csv") 
-    responses = get_responses(chain=chain, safeguard=[ewha_safeguard_chain, mmlu_safeguard_chain], prompts=questions)
+    responses = get_responses(chain=chain, safeguard=[ewha_safeguard_chain, mmlu_safeguard_chain], prompts=questions, debug=True)
     accuracy_total, accuracy_ewha, accuracy_mmlu = eval(questions, answers, responses, debug=True) 
 
     print(f"{ewha_thres=}")
@@ -122,7 +112,7 @@ def main():
     print(f"{default_thres=}")
     print(sys.argv)
     print(templates)
-    print("All Done")
+    print(">> All Done")
 
 if __name__=="__main__":
     main()

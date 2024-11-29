@@ -1,3 +1,7 @@
+"""
+Templates for various chains
+"""
+
 EWHA_PROMPT = """
         Answer the question based on the context below. You have ability to reasoning.
         If not sure about the answer, solve the question without depending on the given context.
@@ -61,7 +65,6 @@ MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     """
 
 
-#     
 TEACHER_TEMPLATE = """
     You are a logical and intelligent teacher.
     You are teaching one student, and this student can be smart sometimes and not so bright at other times.
