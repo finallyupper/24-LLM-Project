@@ -612,6 +612,19 @@ def load_customed_datasets(type):
             train_docs.append(doc) 
         return train_docs 
     
+    elif type == "history":
+        print("[INFO] Load nielsprovos/world-history-1500-qa dataset...") 
+        ds_hist = load_dataset("nielsprovos/world-history-1500-qa")
+        train_data_hist = list(ds_hist['train'])[0]['qa_pairs'] # 376
+        for entry in tqdm(train_data_hist):
+            doc_content = format_hist_docs(entry)
+            doc = Document(page_content = doc_content,
+                            metadata={"question": entry['question'],
+                                      "answer": entry['answer']})
+
+            train_docs.append(doc) 
+        return train_docs
+    
     assert len(train_docs) !=0, "Input correct type!"
 
 def load_custom_dataset(dataset_name):

@@ -12,7 +12,6 @@ from prompts import *
 from tqdm import tqdm 
 warnings.filterwarnings('ignore') 
 RANDOM_SEED = 42  
-# Reference: https://github.com/teddylee777/langchain-kr/blob/main/12-RAG/09-RAPTOR-Long-Context-RAG.ipynb 
 
 def global_cluster_embeddings(embeddings, dim, n_neighbors=None, metric="cosine"):
     """Globally reduce dimension using UMAP"""
@@ -187,7 +186,7 @@ def save_raptor(type, save_path, n_levels=3):
     load_env()
     splits = load_customed_datasets(type = type)
 
-    chunk_size_tok = 500; chunk_overlap=50
+    chunk_size_tok = 1000; chunk_overlap=0
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         chunk_size=chunk_size_tok, 
         chunk_overlap=chunk_overlap
@@ -210,15 +209,6 @@ def save_raptor(type, save_path, n_levels=3):
         summaries = results[level][1]["summaries"].tolist()
         # Add summarization to all_texts
         all_texts.extend(summaries)
-
-    output_dir = "./db/raptor/"
-    os.makedirs(output_dir, exist_ok=True) 
-    output_file = os.path.join(output_dir, "philosophy.txt")
-
-    # Debug
-    # if not os.path.exists(output_file):
-    #     with open(output_file, "w") as f:
-    #         f.write("\n".join(all_texts))
             
     if not os.path.exists(save_path):
         vectorstore = FAISS.from_texts(texts=all_texts, embedding=get_embedding() )
@@ -226,11 +216,11 @@ def save_raptor(type, save_path, n_levels=3):
         print(f"[INFO] Saved Vector DB into {save_path}")
     
 if __name__ == "__main__":
-    # law, psychology, business, philosophy
+    # law, psychology, business, philosophy,history
+
     # DONE
+    # save_raptor(type="history", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/history", n_levels=4) # 1000, 0
     # save_raptor(type="psychology", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/psychology", n_levels=7)  # 1000 , 0
     # save_raptor(type="philosophy", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/philosophy", n_levels=7) # 500, 50
     # save_raptor(type="business", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/business", n_levels=4) # 1000 , 0
     # save_raptor(type="law", save_path="/home/yoojinoh/Others/NLP/24-LLM-Project/db/raptor/law", n_levels=4)  # 1000 , 0
-    
-    
