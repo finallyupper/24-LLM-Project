@@ -103,7 +103,7 @@ def main():
 
     # Get model's response from given prompts
     print("[INFO] Load test dataset...") 
-    questions, answers = read_data(data_root, filename="test85_final.csv") 
+    questions, answers = read_data(data_root, filename="testset.csv") 
     responses = get_responses(chain=chain, safeguard=[ewha_safeguard_chain, mmlu_safeguard_chain], prompts=questions, debug=True)
     accuracy_total, accuracy_ewha, accuracy_mmlu = eval(questions, answers, responses, debug=True) 
 

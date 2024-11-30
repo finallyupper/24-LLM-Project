@@ -131,8 +131,8 @@ def eval(questions, answers, responses, debug=False):
     total_questions = len(answers)
     wrong_questions_total, wrong_questions_ewha, wrong_questions_mmlu = [], [], []
 
-    ewha_indices = list(range(35))
-    mmlu_indices = list(range(35, total_questions))
+    ewha_indices = list(range(25))
+    mmlu_indices = list(range(25, total_questions))
 
     for i, (question, answer, response) in enumerate(zip(questions, answers, responses)):
         print("-"*10)

@@ -1,0 +1,392 @@
+prompts,answers
+"QUESTION1) 재학 중인 학생이 휴학을 하려면 학기 개시일로부터 며칠 이내에 휴학을 신청하야하나요?
+(A) 30일
+(B) 45일 
+(C) 60일
+(D) 90일",(D)
+"QUESTION2) '재입학은 a회에 한하여 할 수 있다. 다만 제 28조제4호에 의하여 제적된 자는 제적된 날부터 b년이 경과한 후 재입학 할 수 있다.' a와 b가 상수일 때 a+b의 값을 구하면?
+(A) 2
+(B) 3
+(C) 4
+(D) A,B,C 중 답 없음",(A)
+"QUESTION3) 학생이 소속 학과 또는 전공 이외의 전공 교과목을 총장이 정하는 바에 따라 몇학점 이상 취득한 때에 부전공을 이수한것으로 인정받을 수 있는가?
+(A) 15학점
+(B) 18학점
+(C) 21학점
+(D) 25학점",(C)
+"QUESTION4) 다음 보기의 학생들 중 제적을 당하지 않는 사람을 고르면?
+(A) 팜 : 징계에 의해 퇴학처분을 받았음 
+(B) 엘모 : 성적이 평점평균 1.2 로 학사경고를 연속 3회 받았음
+(C) 라마 : 수업료 기타 납입금을 소정 기일 내 납입하지 못하였음
+(D) 로라 : 휴학기간 경과 후 3주가 지났으나 갑자기 큰 사고가 났다는 정당한 이유 때문에 복학하지 못하였음",(D)
+"QUESTION5) 2019학년도 휴먼기계바이오공학부의 입학 정원은 몇 명인가? 
+(A) 90명 
+(B) 100명 
+(C) 110명 
+(D) 120명",(C)
+"QUESTION6) 1980학년도 이전 입학생에 대하여 적용하는 등급에 따른 성적점으로 잘못 연결된 것은 무엇인가? 
+(A) 등급: A+, 성적점: 4 
+(B) 등급: A-: 성적점: 3.5 
+(C) 등급: B+, 성적점: 3 
+(D) 등급: C, 성적점: 2",(B)
+"QUESTION7) 사회체육학과 소속 학생에게 수여하는 학위는 무엇인가? 
+(A) 공학사 
+(B) 문학사 
+(C) 사회학사 
+(D) 이학사 ",(D)
+"QUESTION8) 복수전공 신청 자격에 해당하지 않는 것은? 
+(A) 1학년을 마친 학생 
+(B) 평균 평점이 2.50 이상인 학생 
+(C) 졸업 직전 학기에 있는 학생 
+(D) 재학생 신분인 경우",(C)
+"QUESTION9) 이화여자대학교의 설립 정신은 무엇인가요?  (A) 공산주의 이념  (B) 불교 정신  (C) 기독교 정신  (D) 자유주의 사상",(C)
+"QUESTION10) 이화여자대학교의 위치는 어디인가요?  (A) 강남구  (B) 서대문구  (C) 종로구  (D) 송파구",(B)
+"QUESTION11) 학점 기준에 따르면 1학점당 수업 시간은 몇 시간 이상이어야 하나요?  (A) 10시간  (B) 15시간  (C) 20시간  (D) 25시간",(B)
+"QUESTION12) 전공과 관련된 조항으로 올바른 것은?
+(A) 2 이상의 학부가 연계하여 제공하는 전공을 복수전공이라 한다.
+(B) 학생이 소속한 제1전공과정에 기반하여 타학문과의 융복합 교육과정을 제공하는 전공을 융합전공이라 한다.
+(C) 2 이상의 전공을 자기설계전공이라 한다.
+(D) 학생이 교육과정을 구성하여 대학의 인정을 받은 전공을 연계전공이라 한다.",(B)
+"QUESTION13) 등록금에 관한 조항으로 올바르지 않은 것은?
+(A) 총장은 등록금심의위원회의 구성 및 운영에 관한 사항을 정한다.
+(B) 등록기간 만료 전에 휴학원을 제출하여 허가를 얻은 자는 당해 휴학기간의 등록금이 면제된다.
+(C) 등록금이 과오납된 경우에는 금액을 반환할 수 없다.
+(D) 학생은 매학기 등록시 등록금을 납부하여야 한다.",(C)
+"QUESTION14) 전공과목은 어떻게 구분되는가?
+(A) 전공기초과목과 전공과목
+(B) 총장이 따로 정한다
+(C) 필수과목과 선택과목
+(D) 구분하지 않는다",(C)
+"QUESTION15) 학칙개정에 관한 설명으로 옳지 않은 것은?
+(A) 학칙 개정과 대학평의원회는 무관하다.
+(B) 학칙 개정이 이루어지기 전에, 사전공고를 거쳐야 한다.
+(C) 학칙의 개정은 총장이 행한다.
+(D) 학칙개정은 교무회의의 심의를 거친다.",(A)
+"QUESTION16)계절학기에 취득할 수 있는 최대 학점은 몇 점입니까?
+(A) 3학점
+(B) 6학점
+(C) 9학점
+(D) 12학점",(B)
+"QUESTION17)졸업하기 위해 총평균 성적이 충족해야 하는 최소 기준은?
+(A) 1.60
+(B) 1.70
+(C) 2.00
+(D) 2.50",(B)
+"QUESTION18)수업의 결석이 출석으로 인정될 수 있는 사유가 아닌 것은?
+(A) 중대한 질병
+(B) 직계존비속의 사망
+(C) 국제 대회 참가
+(D) 개인 사정",(D)
+"QUESTION19)조기 졸업을 위한 총 평균 성적 기준은?
+(A) 2.50
+(B) 3.00
+(C) 3.50
+(D) 3.75",(D)
+"QUESTION20) 재학 연한 초과로 제적당하지 않는 경우는?
+(A) 학사 편입
+(B) 복수 전공 중
+(C) 재입학 후 1년 이내
+(D) 휴학 중",(D)
+"QUESTION21) 졸업이 취소될 수 있는 상황은?
+(A) 논문 미제출
+(B) 부정한 방법으로 졸업 인정
+(C) 성적 저조
+(D) 졸업 요건 충족 못함",(B)
+"QUESTION22) 교양과목을 제외한 전공과목의 분류는 무엇입니까?
+(A) 필수/선택
+(B) 정규/특별
+(C) 일반/고급
+(D) 학점 기준",(A)
+"QUESTION23) 다음중 옳게 짝지어진 학위를 고르세요.
+(A) 북한 학과 - 이학사
+(B) 기업가정신 - 벤처학사
+(C) 미술학사 - 한국음악
+(D) 문학사 - 소비자학",(D)
+"QUESTION24) 다음 중 이화여자대학교 학칙에서 학점과 관련해 옳은 것을 고르세요
+(A) 교과과정이수 단위는 학기로 한다.
+(B) 한 학기동안 10시간 이상 수업을 들으면 1학점을 준다.
+(C) 학점취득특별시험의 방법은 총장과 위원회가 함께 정한다.
+(D) 제35조는 1999년 2월에 개정되었다.",(D)
+"QUESTION25) 2019학년도 입학 정원에 대한 내용으로 옳은 것을 고르시오.
+(A) 휴먼기계바이오공학부 입학 정원과 무용과의 입학 정원의 합은 149명이다.
+(B) 건반악기과의 입학정원은 164명이다.
+(C) 수학교육과와 국어 교육과의 입학 정원은 각각 37명과 27명이다.
+(D) 음악 대학의 학생수는 자연과학대학의 학생수보다 많다.",(B)
+"QUESTION26) QUESTION 6) A psychologist is asked to see a 10-year-old child for counseling in a school setting. Which of the following statements describes the best way for the psychologist to meet the prescribed ethical responsibility
+(A) ""The parent(s) provide(s) written consent and the psychologist obtains the child's assent non-verbally""
+(B) ""Both the parent(s) and the child provide written consent to therapy for the child""
+(C) ""The child provides written and verbal consent to therapy""
+(D) ""The parent(s) provide(s) written consent and the child assents verbally to participate in therapy""
+(E) ""The psychologist obtains written consent from both the school administration and the parent(s)""
+(F) ""The school administration provides written consent and the child assents verbally to participate in therapy""
+(G) ""The parent(s) provide(s) written and verbal consent to therapy for the child""
+(H) ""The parent(s) provide(s) verbal consent and the child provides written consent to participate in therapy""
+(I) ""The child provides verbal assent to participate in therapy""
+(J) ""The psychologist obtains verbal consent from the school administration"" ]",(D)
+"QUESTION27) A man is at home in his apartment, alone, late at night. Someone repeatedly buzzes his apartment ringer outside the building, but he doesn't answer it because he is very tired and wants to sleep. Later he hears the door to his apartment being kicked in and he is immediately accosted by a man with a gun, who waves the gun at him and says, ""You are getting me your cash or else."" The man opens his safe and turns over the money. The perpetrator absconds with the money but is picked up by the police a few minutes later. What common law crimes has the perpetrator probably committed?
+(A) ""Robbery and burglary.""
+(B) ""Robbery, burglary and attempted murder."" 
+(C) ""Burglary, robbery, and trespassing.""
+(D) ""Aggravated assault and robbery.""
+(E) ""Attempted murder and trespassing.""
+(F) ""Burglary and attempted murder.""
+(G) ""Robbery and attempted murder.""
+(H) ""Robbery and assault.""
+(I) ""Trespassing and armed robbery.""",(A)
+"QUESTION28) What do Homo sapiens and Australopithecus afarensis have in common?
+(A) ""a shared ability to use complex tools""
+(B) ""a similar diet""
+(C) ""a reliance on brachiation""
+(D) ""an identical social structure""
+(E) ""a mode of locomotion""
+(F) ""the same lifespan""
+(G) ""the same geographical distribution""
+(H) ""a lack of sexual dimorphism""
+(I) ""the same language capability""
+(J) ""all the above""",(E)
+"QUESTION29)This question refers to the following information.
+ I walk alongside the column, ask what's going on.
+ A soldier says simply: ""They call up more every day.
+ ""Some of us were sent north to the Yellow River at age fifteen,
+ And now at forty we're heading off to the garrisons in the west.
+ On our first tour, the village headman had to tie our bandannas for us.
+ When we came back, our hair was white, but still there's more unrest.
+ The frontier garrisons run with blood, enough to fill an ocean,
+ But the Martial Emperor's territorial ambitions have yet to crest.
+ In the hundred districts east of the mountains, throughout the land of Han,
+ There must be ten thousand villages that brambles now infest.
+ Even if wives are strong enough to handle a hoe and plow,
+ The crops grow every which way, the fields are all a mess.
+ It's hardest for the Shanxi men, with their reputations as fighters:
+ They're rounded up like dogs or chickens, every male impressed.
+ ""But sir, though it's good of you to ask,
+ Complaining isn't part of the soldier's task.
+ We can only shake our heads. Take this winter:
+ The Shanxi troops were never sent home.
+ The District Officers are demanding the land tax,
+ But where will it come from? You can't get blood from a stone!
+ I honestly think it's bad luck to bear a son now,
+ It's better to have a daughter: at least she can marry
+ And live with the neighbors next door.
+ But a son will end up lying on some distant prairie.""
+ Du Fu, ""Ballad of the Army Carts,"" ca. 750 C.E.
+ Based on the poem and your knowledge of history, Tang relations with western nomadic peoples and frontier peoples relied on which of the following?
+ (A) The establishment of a network of spies and informants among the nomadic tribes
+ (B) Adroit diplomacy and establishment of client relationships with bordering nomads
+ (C) The payment of tribute to nomadic rulers
+ (D) The forced relocation of frontier peoples to central China
+ (E) The use of economic incentives to secure the loyalty of nomadic rulers
+ (F) The negotiation of peace treaties with nomadic rulers
+ (G) The dissemination of Chinese culture and traditions among frontier peoples
+ (H) The permanent settlement of Han Chinese in frontier zones
+ (I) The ability of the Tang emperor to project military power on the frontier in order to impose his will",(I)
+"QUESTION30)Homo erectus differed from Homo habilis in which way?
+ (A) Erectus was not bipedal.
+ (B) Erectus was not capable of using tools.
+ (C) Erectus was primarily herbivorous.
+ (D) Erectus fossils are found only in Africa.
+ (E) Erectus possessed a larger brain.
+ (F) Erectus was a relatively short-lived species.
+ (G) Erectus had smaller body size.
+ (H) Erectus fossils are found only in Europe.
+ (I) Erectus possessed a smaller brain.
+ (J) Erectus had shorter lifespan.",(E)
+"QUESTION31)During the manic phase of a bipolar disorder, individuals are most likely to experience
+ (A) extreme fatigue
+ (B) high self-esteem
+ (C) memory loss
+ (D) intense fear and anxiety
+ (E) uncontrollable grief and despair
+ (F) visual hallucinations
+ (G) delusions of persecution",(B)
+"QUESTION32) This question refers to the following information: For the catastrophe of 1914 the Germans are responsible. … Germany, in this matter, was unfortunate enough to allow herself (in spite of her skill at dissimulation) to be betrayed into an excess of candour by her characteristic tendency to go to extremes. Deutschland über alles. Germany above everything! … There you have the ultimate framework of an old but childish race. Georges Clemenceau, Grandeur and Misery of Victory, 1930. From the passage, one may infer that Clemenceau believed:  (A) that Germany's skill at dissimulation was responsible for its victory in the war  (B) that the reason Germany lost the war was that it was betrayed from within  (C) that the lyrics from the popular song Deutschland über alles (which eventually became the German national anthem) were evidence of Germany's aggressive attitude  (D) that Germany's misfortune in the war was due to its lack of skill in dissimulation  (E) that the lyrics from the popular song Deutschland über alles (which eventually became the German national anthem) were the reason Germany started the war  (F) that Germany provided the ultimate framework for modern warfare  (G) that Germany's excessive candour led to its downfall in the war",(C)
+"QUESTION33) You receive a phone call from Hermann H., age 28, who says he is “totally miserable” because of the recent breakup with his girlfriend and that he would like to begin therapy with you. During the first session with Hermann, you find out that his political views are completely repugnant to you, and you feel that you would not enjoy working with him. As an ethical psychologist, you should:
+(A) Discuss your discomfort with Hermann's political views in the first session.
+(B) Ignore your personal feelings and continue therapy without discussing the difference in political views.
+(C) discuss the difference in political views with Hermann only if they become relevant to the psychotherapy process.
+(D) Suggest Hermann to find a psychologist who shares his political views.
+(E) Decline Hermann's request for therapy because of the difference in political views.
+(F) see Hermann in therapy until his current crisis is over and then make a referral if necessary.
+(G) Tell Hermann outright that his political views are repugnant and continue the therapy.
+(H) Offer to treat Hermann only if he changes his political views.
+(I) provide Hermann with appropriate referrals.",(I)
+"QUESTION34) During the second stage of Kohlberg’s preconventional level of moral development, children obey rules because:
+(A) they are taught that rules are unbreakable.
+(B) they enjoy following the rules.
+(C) they are rewarded for following rules.
+(D) they feel they have a personal duty to uphold rules and laws.
+(E) doing so helps them satisfy their personal needs.
+(F) they understand the concept of fairness and justice.
+(G) doing so helps them avoid punishment.
+(H) '''everyone else is doing it.'''
+(I) they believe in the inherent goodness of rules.
+(J) they fear societal disapproval.",(E)
+"QUESTION35)  In satisfying Kant's Humanity formulation of the categorical imperative, we are obligated to adopt two very general goals: the goal of promoting the (morally permissible) ends of others and the goal of
+(A) increasing social status.
+(B) self-perfection.
+(C) achieving inner peace.
+(D) achieving personal goals.
+(E) promoting social harmony.
+(F) self-sacrifice.
+(G) maximizing personal benefits.
+(H) producing happiness.
+(I) attaining moral superiority.",(B)
+"QUESTION36) Aristotle says  that what makes things be what they are--their essence--does not exist apart from individ-uals that exist in the world.  So if all the members of a species were destroyed, then their essence or form:
+(A) would remain preserved in the memories of the remaining species.
+(B) would not be destroyed because there was no essence or form originally to be destroyed; there are only individuals, not universal essences or natures of things.
+(C) would evolve into a different form or essence.
+(D) would be destroyed only if the species was eliminated by unnatural causes.
+(E) would be absorbed by another species.
+(F) would transform into the essence of another existing species.
+(G) would be destroyed only if there were no one around to remember the species.
+(H) would exist as long as there are traces or remnants of the species left in the world.
+(I) would continue existing (as with Plato's Forms) in some other realm of being.
+(J) would likewise be destroyed.",(J)
+"QUESTION37) The ________ School of jurisprudence believes that the law is an aggregate of social traditions and customs that have developed over the centuries.
+(A) Command
+(B) Sociological
+(C) Historical
+(D) Interpretive
+(E) Analytical
+(F) Natural
+(G) Functional
+(H) Positivist
+(I) Realist
+(J) Pragmatic",(C)
+"QUESTION38) A woman was standing in the aisle of a subway car and put her purse on the seat next to her. A man approached the woman from behind and grabbed the purse off the seat. He then pushed the woman out of the way and ran out of the subway car while carrying the purse. The man was apprehended on the subway platform while in possession of the purse. In a jurisdiction that follows the common law with respect to criminal offenses, of what crime can the man properly be convicted?
+
+(A) Fraud, because he took the purse without the woman's consent.
+(B) Larceny, because he took the purse without the woman's permission.
+(C) Burglary, because he entered the subway car with the intention of committing a theft.
+(D) Robbery, because he used force in leaving with the purse.
+(E) Robbery, because he used force to take possession of the purse.
+(F) Robbery, because he used force to remove the woman from the purse's vicinity.
+(G) Larceny, because force was not used until after he took the purse.
+(H) Assault, because he pushed the woman out of the way.
+(I) Larceny, because he made no threat to use force.
+(J) Robbery, because he physically took the purse from the woman's presence.",(D)
+"QUESTION39) A defendant met her friend at the electronics store where the friend worked. Unbeknownst to the defendant, her friend had taken a music player from the display case and stuffed it in her bag earlier in the day. Knowing that employees are subject to search when they leave the store, the friend surreptitiously put the music player into the defendant's bag. The defendant and her friend proceeded to a local tavern and drank shots of tequila. The friend became intoxicated and forgot to retrieve the stolen music player from the defendant's bag. After leaving the tavern, the defendant proceeded home. Upon opening her bag, she was surprised to see the music player. Believing that the music player had accidentally fallen into her bag at the bar, the defendant planned to return it the next day. The following day, however, the defendant changed her mind and decided to keep it. The defendant is guilty of:
+
+(A) larceny.
+(B) possession of stolen property.
+(C) burglary.
+(D) receiving stolen property.
+(E) theft.
+(F) robbery.
+(G) neither receiving stolen property nor larceny.
+(H) receiving stolen property and larceny.
+(I) conspiracy to commit theft.
+(J) aiding and abetting theft.",(G)
+"QUESTION40)____________ refers to a strategic process involving stakeholder assessment to create long-term relationships with customers, while maintaining, supporting, and enhancing the natural environment.
+ (A) Greenwashing (B) Eco-branding (C) Recycle and reprocess management (D) Sustainable Development (E) Environmental Stewardship (F) Superfund reauthorization (G) Eco-strategy (H) Environmental Impact Assessment (I) Green Marketing (J) Eco-efficient Operations",(I)
+"QUESTION41)This question refers to the following information. Seizing me, he led me down to the House of Darkness… To the house where those who enter do not come out, Along the road of no return, To the house where those who dwell, do without light, Where dirt is their drink, their food is of clay… Where light cannot be seen. They dwell in the dark, And upon the door and bolt, there lies dust. from Tablet VII, The Epic of Gilgamesh, Sumeria, ca. 2100 B.C.E.
+
+Truth is good and its worth is lasting. It has not been disturbed since the day of its creator, Whereas he who transgresses its ordinances is punished. It lies as a path in front of even him who knows nothing. Wrongdoing has never yet brought its venture to port… Those whom the gods guide cannot lose themselves. Those to whom they forbid passage will not be able to cross the river of life. from The Maxims of Ptahhotep, Egypt, ca. 2400 B.C.E.
+
+The above texts are best understood in the context of which of the following?
+
+(A) ""The use of religion to enforce legal norms""
+(B) ""The use of religion to dictate artistic expressions""
+(C) ""The use of religion to justify gender relations""
+(D) ""The use of religion to structure economic transactions""
+(E) ""The use of religion to ponder conceptions of the afterlife""
+(F) ""The use of religion to explain social hierarchy""
+(G) ""The use of religion to legitimize political power""
+(H) ""The use of religion to establish educational systems""
+(I) ""The use of religion to justify military conquests""",(E)
+"QUESTION42) Is the recognition of foreign judgments subject to the same rules as those applicable to the incorporation and transformation of treaties?
+(A) Foreign judgments are enforced on the basis of the doctrine of monism
+(B) Foreign judgments are enforced on the basis of the doctrine of dualism
+(C) Foreign judgments are enforced on the basis of the doctrine of incorporation
+(D) The recognition of foreign judgments is dependent on the existence of appropriate bilateral or multilateral treaties
+(E) The courts exercise discretion as to the enforcement of foreign judgments on the basis of the rule of reciprocity
+(F) Foreign judgments are automatically recognized and enforced without any additional process.
+(G) Foreign judgments are enforced on the basis of the doctrine of transformation",(D)
+"QUESTION43) Some contemporary intelligence researchers like Howard Gardner and Robert Sternberg complain that schools focus too much on
+(A) nonessential subjects like art and music.
+(B) fostering collaborative learning environments.
+(C) traditional subjects and methods.
+(D) promoting physical education and sports.
+(E) cultivating social intelligence.
+(F) the development of emotional intelligence.
+(G) individual learning styles and preferences.
+(H) encouraging creative thought.
+(I) the use of technology in education.
+(J) the environmental factors that influence the expression of intelligence.",(C)
+"QUESTION44) BobGafneyand Susan Medina invested $40,000 and $50,000 respectively in a luncheonette. Since Mr.Gafneyis the manager of the luncheonette, he gets 4% of the net income. Each partner receives 6% interest on his or her investment. Any remaining net income is divided equally. If the net income for any year is $28,600, how is it divided?
+(A) Mr. Gafney's income is $12,600 and Ms. Medina's income is $16,000
+(B) Mr. Gafney's income is $14,000 and Ms. Medina's income is $14,600
+(C) Mr.Gafney's income is $14,572 and Ms. Medina's income is $15,028
+(D) Mr.Gafney's income is $15,572 and Ms. Medina's income is $13,028
+(E) Mr. Gafney's income is $16,000 and Ms. Medina's income is $12,600
+(F) Mr.Gafney's income is $14,572 and Ms. Medina's income is $14,028
+(G) Mr. Gafney's income is $15,300 and Ms. Medina's income is $13,300
+(H) Mr. Gafney's income is $13,300 and Ms. Medina's income is $15,300
+(I) Mr. Gafney's income is $14,600 and Ms. Medina's income is $14,000
+(J) Mr.Gafney's income is $13,572 and Ms. Medina's income is $15,028",(F)
+"QUESTION45) One objection to Singer’s theory that he considers is that it:
+(A) inappropriately makes proximity morally important.
+(B) fails to consider the cultural differences in moral norms.
+(C) overlooks the role of government and institutions in addressing suffering.
+(D) does not do enough to address suffering in other countries besides our own.
+(E) does not account for the fact that we have stricter obligations to our loved ones than to strangers.
+(F) does not address the issue of moral obligations to non-human animals.
+(G) ignores the importance of self-interest in human behavior.
+(H) assumes that all individuals have the same capacity to alleviate suffering.
+(I) does not provide a clear definition of what constitutes suffering.
+(J) requires too drastic a revision to our moral scheme.",(J)
+"QUESTION46) In 1797, John Frere made a discovery that he described as:
+(A) a new type of metal alloy.
+(B) the earliest written documents.
+(C) the remains of a massive wooden ship believed to be Noah's Ark.
+(D) animal remains scattered on the surface of the ground.
+(E) the ruins of an ancient civilization under the sea.
+(F) fossils of a previously unknown dinosaur species.
+(G) cave paintings depicting ancient hunting scenes.
+(H) human skulls with ape-like features.
+(I) primitive stone tools excavated at great depth.
+(J) a hidden underground city.",(I)
+"QUESTION47) Pick the correct description of the following term: Utilitarianism is…
+(A) A theory which states that an action is morally right if it promotes the greatest good for the decision maker
+(B) A theory which states that an action is morally right if it results in a balanced distribution of good and bad outcomes
+(C) A theory which states that an action is morally right if it promotes the greatest good for the fewest people
+(D) A theory which states that an action is morally right if it promotes the least harm for the greatest number
+(E) A theory which states that an action is morally wrong if it promotes the greatest good for the majority
+(F) A theory which states that an action is morally incorrect if it promotes the greatest good for the greatest number
+(G) A theory which states that an action is morally right if it promotes the greatest good for the greatest number
+(H) A theory which states that an action is morally right if it promotes the greatest harm for the smallest number
+(I) A theory which states that an action is morally right if it promotes the greatest good for the individual performing the action
+(J) A theory which states that an action is morally right if it promotes the greatest good for the smallest number",(G)
+"QUESTION48) Which of the following describes a key change in hominids beginning at least as early as Homo erectus that is probably related to increasingly larger brain size?
+(A) cranial reduction
+(B) decreased dentition
+(C) microcephaly
+(D) supraorbital cortex
+(E) encephalization
+(F) opposable thumbs
+(G) prognathism
+(H) neoteny
+(I) bipedalism
+(J) increased body size",(H)
+"QUESTION49) Delia was accepted to both Harvard University and Yale University and is having difficulty choosing which school to attend. With which of the following conflicts is she faced?
+(A) cognitive-dissonance
+(B) intrinsic-extrinsic
+(C) reward-punishment
+(D) internal-external
+(E) frustration-aggression
+(F) approach-avoidance
+(G) approach-approach
+(H) avoidance-avoidance
+(I) passive-aggressive
+(J) positive-negative",(G)
+"QUESTION50) Which is the least accurate description of legal positivism?
+(A) It perceives law as arbitrary and without any logical structure.
+(B) It regards morals and law as inseparable.
+(C) It espouses the view that there is no necessary connection between morality and law.
+(D) It regards a legal order as a closed logical system.
+(E) It perceives law as commands.
+(F) It regards law as suggestions rather than commands.
+(G) It asserts that law is based on personal beliefs and opinions.
+(H) It implies that legal decisions are made purely on emotional grounds.
+(I) It views law as inherently just and moral.
+(J) It suggests that morality is the only basis of law.",(B)

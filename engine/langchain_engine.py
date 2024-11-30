@@ -357,13 +357,14 @@ def check_by_teacher(chain, response):
         return False, response
     else: return True, response
 
-def get_alphabet(question, response, debug=False):
+def get_option(question, response, debug=False):
     answer = get_answers(response)
+    if extract_answer(answer) is not None: return answer
     if 'Answer:\n' in answer:
         answer = answer.replace("Answer:\n", f"[ANSWER]: ")
         print("&&EUREKA:", "[ANSWER]: "+ answer.split('[ANSWER]:')[-1].strip())
     else:
-        pattern = r'\(([A-Z])\)\s(.*?)\n'
+        pattern = r'\(([A-Z])\)\s(.*?)[\u2028\n]'
         options = re.findall(pattern, question)
         print("&&OPTIONS:", options)
         candidate = answer.split('[ANSWER]:')[-1].strip()
@@ -377,6 +378,7 @@ def get_alphabet(question, response, debug=False):
                 answer = answer.replace("[ANSWER]:", f"[ANSWER]: ({question_alphabet}) {question_text}")
                 print("&&EUREKA:", "[ANSWER]: "+ answer.split('[ANSWER]:')[-1].strip())
                 return answer
+    answer = answer.replace("\u2028", "\n")
     return answer
 
 def get_answers(response):
@@ -395,17 +397,17 @@ def get_responses(chain, safeguard, prompts, debug=False):
         # No relevant docs were retrieved using the relevance score threshold 0.8
         try:
             response = chain.invoke(prompt) # chain.invoke({"question": prompt, "context": context})
-            if debug: print("&&ROUTE: ", response)
+            if debug: print("&&ROUTE: ", response['result'])
             #is_correct_by_teacher, teacher_res = check_by_teacher(teacher, response)
             # (not is_correct_by_teacher or extract_answer(response['result']) is None)
             if extract_answer(response['result']) is None:
-                response['result'] = get_alphabet(prompt, response)
+                response['result'] = get_option(prompt, response)
             if len(response['source_documents']) > 0 and extract_answer(response['result']) is None:
                 response = safeguard[0].invoke(prompt)
                 if debug: print("&&EWHA SAFEGUARD: ", response)
             if len(response['source_documents']) < 1 or extract_answer(response['result']) is None:
                 response = safeguard[1].invoke(prompt)
-                response = get_alphabet(prompt, response)
+                response = get_option(prompt, response)
                 #response = teacher_res 
                 #print("&&TEACHER: ", teacher_res)
                 if debug: print("&&MMLU SAFEGUARD: ", response)
