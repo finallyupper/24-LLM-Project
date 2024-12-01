@@ -290,7 +290,7 @@ def get_responses(chain, safeguard, prompts, debug=False):
         # When router chooses non-exist destination chain
         ## ex) ValueError: Received invalid destination chain name 'education_retriever'
         except ValueError: 
-            response = safeguard[0].invoke(prompt)
+            response = safeguard[0].invoke(prompt) # Ewha Retriever
             response = get_option(prompt, response)
             if debug: print("[INFO] SAFEGUARD: ", response)
         responses.append(get_answers(response))
