@@ -74,7 +74,7 @@ def main():
                     top_k=top_k, 
                     thres=mmlu_thres) 
         mmlu_rets.append(ret) 
-    assert len(mmlu_rets) == 5, "The number of retrievers should be 4."
+    assert len(mmlu_rets) == 5, "The number of retrievers should be 5."
 
     # Get default retriever (same with ewha retriever except threshold)
     default_retriever  = ret_dict.get(ewha_ret)[1](splits, 

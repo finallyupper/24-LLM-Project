@@ -179,8 +179,8 @@ def get_router(llm, retrievers, prompt_template=None, verbose=True):
 
     if prompt_template is not None:
          prompt_template1 = PromptTemplate.from_template(prompt_template[0]) # EWHA 
-         prompt_template2 = PromptTemplate.from_template(prompt_template[1]) # Common for MMLU
-         prompt_template3 = PromptTemplate.from_template(prompt_template[2]) # BASE
+         prompt_template2 = PromptTemplate.from_template(prompt_template[1]) # common for MMLU
+         prompt_template3 = PromptTemplate.from_template(prompt_template[2]) # BASE (default)
     else:
         prompt_template1 = hub.pull("rlm/rag-prompt") #QA prompt  https://smith.langchain.com/hub/rlm/rag-prompt?organizationId=5b2073af-2123-4ed3-b218-fa406e467d84 
         prompt_template3 = prompt_template2 = prompt_template1
@@ -224,16 +224,17 @@ def get_router(llm, retrievers, prompt_template=None, verbose=True):
         },
     ]
 
-    default_retriever = retrievers[-1]
+    default_retriever = retrievers[-1] # Default: Ewha Retriever
     
     multi_retrieval_qa_chain = newMultiRetQAChain.from_retrievers(
         llm=llm,
         retriever_infos=retriever_infos,
         default_retriever=default_retriever,
         default_prompt=prompt_template3,
-        verbose=True
+        verbose=verbose
     )
     return multi_retrieval_qa_chain 
+
 
 def get_option(question, response, debug=False, eval=False):
     answer = get_answers(response)

@@ -1,9 +1,8 @@
 # config.yaml
-data_root: ./data
+data_root: ./data # 데이터 루트
 chunk_size: 400
 chunk_overlap: 100
-top_k: 5
-top_k_wiki: 3
+top_k: 5 # 상위 몇개까지 retriever가 뽑을지를 나타내는 하이퍼파라미터
 default_thres: 0.0
 
 # For ewha questions
