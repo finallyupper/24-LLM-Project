@@ -235,7 +235,6 @@ def get_router(llm, retrievers, prompt_template=None, verbose=True):
     )
     return multi_retrieval_qa_chain 
 
-
 def get_option(question, response, debug=False, eval=False):
     answer = get_answers(response)
     if extract_answer(answer, eval) is not None: return answer
