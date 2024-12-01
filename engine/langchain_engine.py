@@ -285,7 +285,7 @@ def get_responses(chain, safeguard, prompts, debug=False):
                 response['result'] = get_option(prompt, response)
                 if debug: print("[INFO] EWHA SAFEGUARD: ", response)
             # MMLU Safeguard
-            if len(response['source_documents']) < 2 or \
+            if len(response['source_documents']) < 1 or \
                 (isinstance(response, dict) and extract_answer(get_answers(response), eval=True) is None): # RFV
                 response = safeguard[1].invoke(prompt)
                 response = get_option(prompt, response)
