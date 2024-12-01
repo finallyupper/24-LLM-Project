@@ -259,6 +259,7 @@ def get_option(question, response, debug=False, eval=False):
     answer = answer.replace("\u2028", "\n")
     return answer
 
+# Get LLM's answer regardless of format
 def get_answers(response):
     if isinstance(response, str): answer = response
     else:
@@ -266,7 +267,7 @@ def get_answers(response):
         except: answer = response.content
     return answer
 
-# Get LLM's response with Safeguard
+# Collect final responses with Safeguard
 def get_responses(chain, safeguard, prompts, debug=False):
     responses = []
     for prompt in tqdm(prompts, desc="Processing questions"):
