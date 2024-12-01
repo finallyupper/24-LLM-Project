@@ -23,6 +23,9 @@ Run the following command to start testing the model:
 ```
 python main.py
 ```
+**NOTE** ) If you get the debugging messages in your terminal as following, it means the codes work correctly!
+   
+![terminal](./assets/terminal.png)
 ## Directory Structure
 ```
 24-LLM-Project/
