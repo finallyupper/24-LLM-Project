@@ -246,6 +246,7 @@ def get_option(question, response, debug=False, eval=False):
         options = re.findall(pattern, question)
         print("[INFO] OPTIONS:", options)
         candidate = answer.split('[ANSWER]:')[-1].strip()
+        # Find the missing option
         for (question_alphabet, question_text) in options:
             if debug:
                 print(f"Option {question_alphabet}:")

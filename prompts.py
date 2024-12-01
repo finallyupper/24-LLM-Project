@@ -3,10 +3,12 @@ Templates for various chains
 """
 
 EWHA_PROMPT = """
+        You are brilliant, smart, and logical. 
         Answer the question based on the context below. You have ability to reasoning.
         If not sure about the answer, solve the question without depending on the given context.
         Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
         Explain the intent behind the question.
+        Also, you are smart and very good at mathematics.
 
         ### Context:
         {context}
@@ -24,9 +26,11 @@ EWHA_PROMPT = """
 BASE_PROMPT = MMLU_PROMPT = EWHA_PROMPT
 
 SG_PROMPT = """
-        Answer the question based on the context below. You have ability to reasoning.
-        Utilize the clues provided by the speaker to logically infer their current status, and explain the reasoning behind your conclusion in 2-3 sentences.
-        Explain the intent behind the question.
+        You are brilliant, smart, and logical. 
+        You are an expert of world knowledge and know everything in Wikipedia.
+        Explain the reasoning behind your conclusion in 2-3 sentences.
+        Read all the choices carefully before you choose the final answer.
+        Also, you are smart and very good at mathematics.
 
         ### Question:
         {question}
