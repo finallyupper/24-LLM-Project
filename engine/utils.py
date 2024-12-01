@@ -6,7 +6,6 @@ import pandas as pd
 import yaml
 from bs4 import BeautifulSoup
 
-
 def clean_html(html_text):
     soup = BeautifulSoup(html_text, 'html.parser')
     return soup.get_text()
@@ -89,21 +88,21 @@ def format_hist_docs(data):
     formatted_doc = f'### Question: {question}\nAnswer:\n{answer}\n'
     return formatted_doc
 
-# Modified(Yoojin)
-def extract_answer(response):
+def extract_answer(response, eval=False):
     """
     Extracts the answer from the response using a regular expression.
     Expected format: "[ANSWER]: (A) convolutional networks"
     If multiple answers are formatted like "(A) (B) (C)", it returns the last option (e.g., "C").
     """
     # Match multiple options like "(A) (B) (C)" and extract the last one
-    pattern = r"\[ANSWER\]:.*\((A|B|C|D|E)\)"
+    pattern = r"\[ANSWER\]:.*\(([A-J])\)"
     matches = re.findall(pattern, response)
     
     if matches:
         return matches[-1]  # Return the last match (e.g., "C")
     else:
-        return extract_again(response)
+        if eval: return extract_again(response)
+        else: return None
     
 def extract_again(response):
     """
@@ -117,34 +116,33 @@ def extract_again(response):
         return None
     
 def random_select(question):
-    pattern = r"\((A|B|C|D|E)\)"  # Regular expression to capture the answer letter and text
-    print(re.findall(pattern, question)[0])
-    match = np.unique(list(re.findall(pattern, question)[0]))
-    if match:
+    pattern = r"\(([A-J])\)"  # Regular expression to capture the answer letter and text
+    match = np.unique(re.findall(pattern, question))
+    if len(match):
         num = random.randint(0, len(match)-1)
         return match[num] # Extract the letter inside parentheses (e.g., A)
     else:
-        return random.choice(["A", "B"])
+        return random.choice(["A", "B", "C", "D"])
 
 def eval(questions, answers, responses, debug=False):
     cnt_total = cnt_ewha = cnt_mmlu = 0
     total_questions = len(answers)
     wrong_questions_total, wrong_questions_ewha, wrong_questions_mmlu = [], [], []
 
-    ewha_indices = list(range(25))
-    mmlu_indices = list(range(25, total_questions))
+    n_ewha_questions = 25
+    ewha_indices = list(range(n_ewha_questions))
+    mmlu_indices = list(range(n_ewha_questions, total_questions))
 
     for i, (question, answer, response) in enumerate(zip(questions, answers, responses)):
         print("-"*10)
         print(f"Question {i + 1}: {question}\n")
-        generated_answer = extract_answer(response)
+        generated_answer = extract_answer(response, eval=True)
         if debug:
             print(f"[Total Response]{response}")
             if generated_answer:
                 print(f"\ngenerated answer: {generated_answer}, answer: {answer}")
             else:
                 print("extraction fail")
-
                 generated_answer = random_select(question)
                 print(f"{generated_answer} selected")
         try:
@@ -182,8 +180,6 @@ def eval(questions, answers, responses, debug=False):
     print(f"Wrong Answers (Overall): {wrong_questions_total}")
     print(f"Wrong Answers (Ewha): {wrong_questions_ewha}")
     print(f"Wrong Answers (MMLU-pro): {wrong_questions_mmlu}")
-
-    return accuracy_total, accuracy_ewha, accuracy_mmlu
     
 
 def document_to_dict(doc):

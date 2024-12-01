@@ -64,49 +64,6 @@ MULTI_RETRIEVAL_ROUTER_TEMPLATE = """
     << OUTPUT (remember to include the ```json)>>
     """
 
-
-TEACHER_TEMPLATE = """
-    You are a logical and intelligent teacher.
-    You are teaching one student, and this student can be smart sometimes and not so bright at other times.
-    You gave the student the following question:
-    ---
-    ###Question:
-    {question}
-
-    ---
-    And you received the student’s answer:
-    ###Answer:
-    {answer}
-
-    ---
-    Please analyze whether the student’s answer is correct or incorrect, with an explanation to student step by step.
-    NOTE) At the end, you MUST say either “Correct” or “Incorrect” regarding the student’s answer.
-    """
-
-TEACHER_SG_TEMPLATE = """
-    You are a logical and intelligent teacher.
-    You are teaching one student, and this student can be smart sometimes and not so bright at other times.
-    You gave the student the following question:
-    ---
-    ###Question:
-    {question}
-
-    ---
-    And you received the student’s answer:
-    ###Answer:
-    {answer}
-
-    ---
-    Please analyze whether the student’s answer is correct or incorrect, with an explanation to student step by step.
-    If the student’s answer is incorrect, you should give correct answer with example format.
-    NOTE) You MUST conclude correct answer like following format at the end. Remind that you can only one from multiple choices.
-    
-    ---
-
-    ### Example of expected format:
-    [ANSWER]: (A) convolutional networks
-    """
-
 RAPTOR_EWHA_TEMPLATE = """
     여기 이화여자대학교 학칙 문서가 있습니다.
 

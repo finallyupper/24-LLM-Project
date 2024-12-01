@@ -1,11 +1,9 @@
-import sys
 from langchain.chains.retrieval_qa.base import RetrievalQA
 
 from engine.utils import * 
 from engine.langchain_engine import *
 from prompts import *
 import warnings
-
 warnings.filterwarnings('ignore') 
 
 """
@@ -48,7 +46,7 @@ def main():
     }
 
     # Get retriever for ewha
-    ewha_ret="rap_faiss"
+    ewha_ret = "rap_faiss"
     if not os.path.exists(ret_dict.get(ewha_ret)[2]):
         print(f"[INFO] {ret_dict.get(ewha_ret)[2]} not exists")
         splits = ret_dict.get(ewha_ret)[0](data_root, chunk_size, chunk_overlap) 
@@ -65,7 +63,7 @@ def main():
     mmlu_rets = []
     mmlu_data_splits = []
     for faiss_path in mmlu_ret_paths:
-        type_name = str(os.path.basename(faiss_path)).split("_")[0] # ex. business
+        type_name = str(os.path.basename(faiss_path)).split("_")[0] # ex) business
         if not os.path.exists(faiss_path):          
             mmlu_data_splits = load_custom_dataset(type_name) 
         ret = get_faiss(
@@ -77,7 +75,6 @@ def main():
                     thres=mmlu_thres) 
         mmlu_rets.append(ret) 
     assert len(mmlu_rets) == 5, "The number of retrievers should be 4."
-    #mmlu_retriever_ensemble = get_ensemble_retriever(mmlu_rets, [0.25, 0.25, 0.25, 0.25]) 
 
     # Get default retriever (same with ewha retriever except threshold)
     default_retriever  = ret_dict.get(ewha_ret)[1](splits, 
@@ -94,7 +91,7 @@ def main():
     llm = get_llm(temperature=0)
 
     # rounting
-    chain = route(llm, [ewha_retriever, mmlu_rets, default_retriever], templates)
+    chain = get_router(llm, [ewha_retriever, mmlu_rets, default_retriever], templates)
     mmlu_safeguard_chain = PromptTemplate.from_template(SG_PROMPT) | llm
     ewha_safeguard_chain = RetrievalQA.from_llm(llm, 
                                 prompt=PromptTemplate.from_template(EWHA_PROMPT), 
@@ -105,14 +102,8 @@ def main():
     print("[INFO] Load test dataset...") 
     questions, answers = read_data(data_root, filename="testset.csv") 
     responses = get_responses(chain=chain, safeguard=[ewha_safeguard_chain, mmlu_safeguard_chain], prompts=questions, debug=True)
-    accuracy_total, accuracy_ewha, accuracy_mmlu = eval(questions, answers, responses, debug=True) 
-
-    print(f"{ewha_thres=}")
-    print(f"{mmlu_thres=}")
-    print(f"{default_thres=}")
-    print(sys.argv)
-    print(templates)
-    print(">> All Done")
+    eval(questions, answers, responses, debug=True) 
+    print("All Done")
 
 if __name__=="__main__":
     main()
