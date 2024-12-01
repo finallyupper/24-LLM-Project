@@ -240,13 +240,13 @@ def get_option(question, response, debug=False, eval=False):
     if extract_answer(answer, eval) is not None: return answer
     if 'Answer:\n' in answer:
         answer = answer.replace("Answer:\n", f"[ANSWER]: ")
-        print("[INFO] EUREKA:", "[ANSWER]: "+ answer.split('[ANSWER]:')[-1].strip())
+        if debug: print("[INFO] EUREKA:", "[ANSWER]: "+ answer.split('[ANSWER]:')[-1].strip())
     else:
         pattern = r'\(([A-Z])\)\s(.*?)[\u2028\n]'
         options = re.findall(pattern, question)
         print("[INFO] OPTIONS:", options)
         candidate = answer.split('[ANSWER]:')[-1].strip()
-        # Find the missing option
+        # Find the missing option (uppercase alphabet)
         for (question_alphabet, question_text) in options:
             if debug:
                 print(f"Option {question_alphabet}:")
