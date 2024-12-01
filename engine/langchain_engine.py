@@ -280,7 +280,7 @@ def get_responses(chain, safeguard, prompts, debug=False):
                 response['result'] = get_option(prompt, response)
                 
             # Ewha Safeguard
-            if len(response['source_documents']) > 1 and extract_answer(get_answers(response), eval=True) is None: # RFV
+            if len(response['source_documents']) > 0 and extract_answer(get_answers(response), eval=True) is None: # RFV
                 response = safeguard[0].invoke(prompt)
                 response['result'] = get_option(prompt, response)
                 if debug: print("[INFO] EWHA SAFEGUARD: ", response)
