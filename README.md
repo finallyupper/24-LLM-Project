@@ -9,6 +9,12 @@ This Repository contains codebase for **Enhancing Large Language Models (LLMs) p
 Clone this repository and Create conda environment and install all the dependencies:
 ```
 git clone https://github.com/finallyupper/24-LLM-Project.git
+
+conda create --name pj python=3.12
+
+conda activate pj
+
+pip install -r requirements.txt
 ```
  You can change various hyperparameters including top k and thresholds in `config.yaml`. Before start, don't forget to make `.env` file in the repository and place the following information:
 ```
@@ -18,6 +24,7 @@ LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 LANGCHAIN_API_KEY=""
 LANGCHAIN_PROJECT="24-nlp-0"
 ```
+
 ## How to play 💭
 Run the following command to start testing the model:
 ```
