@@ -1,0 +1,14 @@
+faiss-cpu==1.9.0
+faiss-gpu-cu12==1.9.0.0
+langchain==0.3.7
+langchain-community==0.3.5
+langchain-core==0.3.15
+langchain-openai==0.2.6
+langchain-teddynote==0.3.24
+langchain-text-splitters==0.3.2
+langchain-upstage==0.3.0
+python-dotenv
+pandas
+numpy
+bs4
+datasets
