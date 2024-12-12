@@ -16,6 +16,12 @@ conda activate pj
 
 pip install -r requirements.txt
 ```
+**Note for CPU-only Environments**
+If you **do not have a GPU**, edit the requirements.txt file as follows before running the installation:
+```
+# faiss-gpu-cu12==1.9.0.0
+faiss-cpu==1.9.0
+```
  You can change various hyperparameters including top k and thresholds in `config.yaml`. Before start, don't forget to make `.env` file in the repository and place the following information:
 ```
 UPSTAGE_API_KEY = ""
