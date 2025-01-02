@@ -1,4 +1,4 @@
-# 24-LLM-Project 
+# UpstageQA
 This Repository contains codebase for **Enhancing Large Language Models (LLMs) provided by [Upstage](https://www.upstage.ai/) (Solar)**. The project offers the pipeline that acheives high performance on given `ewha.pdf` document and `MMLU-Pro dataset`. The optimal prompts and multiple knowledge base(KB)s for the Question-and-Answering Tasks are also included in `./db/*` and `prompts.py`. 
 
 ## 🌟 Overview 
